@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
+import { getUrlParams } from '../utils'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 
@@ -27,7 +28,13 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const token = window.localStorage.getItem('token')
+  const params = getUrlParams(window.location.href)
+  const user = params.user || to.query.user
+  // console.log('router.beforeEach params:', params)
+  // console.log('router.beforeEach:', to, from)
+  // console.log('router.beforeEach user:', user)
+  const tokenKey = `token_${user}`
+  const token = window.localStorage.getItem(tokenKey)
   if (!token && to.path !== '/login') {
     next('/login')
   } else {

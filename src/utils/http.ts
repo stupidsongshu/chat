@@ -4,10 +4,13 @@ import { Message, Loading } from 'element-ui'
 import { ElLoadingComponent } from 'element-ui/types/loading'
 import router from '@/router'
 
+type Headers = {
+  [key: string]: string
+}
 interface IHttpOptions {
   method?: Method;
   loading?: boolean;
-  headers?: any;
+  headers?: Headers;
   type?: string;
   [index: string]: unknown;
 }

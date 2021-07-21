@@ -2,7 +2,7 @@
   <div class="page page-home">
     <el-container class="page-container">
       <el-aside class="page-aside" width="330px">
-        <ContactList ref="contactList" :user.sync="selectedContactUser" />
+        <ContactList ref="contactList" :user.sync="selectedContactUser"></ContactList>
       </el-aside>
       <el-main class="page-main">
         <el-header class="page-header">
@@ -55,15 +55,14 @@ export default class Home extends Vue {
 
 <style scoped>
 .page-home {
-  /* flex: 1; */
-  padding-top: 20px;
+  /* padding-top: 20px;
   padding-right: 20px;
-  padding-left: 20px;
-  padding-bottom: 200px; /* TODO */
+  padding-left: 20px; */
+  /* padding-bottom: 200px; */
 }
 .page-container {
   position: relative;
-  border: 1px solid #ddd;
+  /* border: 1px solid #ddd; */
 }
 .page-aside {
   /* height: 100vh; */
@@ -81,6 +80,7 @@ export default class Home extends Vue {
   padding-bottom: 200px; */
 }
 .chat-main {
+  /* height: 100vh; */
   height: calc(100vh - 260px);
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;

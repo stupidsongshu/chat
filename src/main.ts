@@ -4,7 +4,9 @@ import router from './router'
 // import store from './store'
 import '@/assets/css/base.css'
 
+import VueScrollTo from 'vue-scrollto'
 import infiniteScroll from 'vue-infinite-scroll'
+
 import {
   Button,
   Input,
@@ -25,6 +27,7 @@ import {
   Popover
 } from 'element-ui'
 
+Vue.use(VueScrollTo)
 Vue.use(infiniteScroll)
 Vue.use(Button)
 Vue.use(Input)

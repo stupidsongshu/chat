@@ -18,22 +18,8 @@
 import { Vue, Component } from 'vue-property-decorator'
 import { login } from '@/utils/api'
 
-// interface ILogin {
-//   name: string,
-//   pwd: string,
-//   loading: boolean
-// }
-
 @Component
 export default class Login extends Vue {
-  // data (): ILogin {
-  //   return {
-  //     name: 'Hello',
-  //     pwd: '',
-  //     loading: false
-  //   }
-  // }
-
   name = ''
   pwd = ''
   loading = false

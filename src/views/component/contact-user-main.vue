@@ -1,27 +1,33 @@
 <template>
-  <div>
-    <ul class="chat-record">
-      <li v-if="inited" id="prev-msg" class="msg-item" style="justify-content:center;">
-        <el-link v-if="!noMore" type="primary" @click="doGetMsgList">上一页</el-link>
-        <span v-else style="font-size:12px;color:#999;">没有更多了</span>
-      </li>
-      <li v-for="item in list" :key="item.id" class="msg-item" :class="{'msg-send': item.direction === 0, 'msg-receive': item.direction === 1}">
-        <!-- direction: 0-我方发送 1-粉丝发送 -->
-        <el-avatar shape="square" v-if="item.direction === 1" :size="36"></el-avatar>
-        <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
-        <!-- 纯文本 -->
-        <div v-if="item.type === 'text'" class="msg-content">
-          {{item.msgCn || ' '}}
-        </div>
-        <!-- 含链接 -->
-        <div v-else-if="item.type === 'link'" class="msg-content" v-html="item.linkMsg"></div>
-        <!-- 图片 -->
-        <div v-else-if="item.type === 'media'">
-          <img :src="item.url" class="msg-msg" alt="">
-        </div>
-      </li>
-    </ul>
-  </div>
+  <ul id="chat-container" class="chat-record">
+    <li v-scroll-to="'#chat-'+chatId"> 
+      <a href="#" v-scroll-to="'#chat-'+chatId">Scroll to {{chatId}}</a>
+    </li>
+    <li v-if="inited" id="prev-msg" class="msg-item" style="justify-content:center;">
+      <el-link v-if="!noMore" type="primary" @click="doGetMsgList">上一页</el-link>
+      <span v-else style="font-size:12px;color:#999;">没有更多了</span>
+    </li>
+    <li
+      v-for="item in list"
+      :key="item.id"
+      class="msg-item"
+      :class="{'msg-send': item.direction === 0, 'msg-receive': item.direction === 1}"
+      :id="'chat-' + item.id">
+      <!-- direction: 0-我方发送 1-粉丝发送 -->
+      <el-avatar shape="square" v-if="item.direction === 1" :size="36"></el-avatar>
+      <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
+      <!-- 纯文本 -->
+      <div v-if="item.type === 'text'" class="msg-content">
+        {{item.id}} {{item.msgCn || ' '}}
+      </div>
+      <!-- 含链接 -->
+      <div v-else-if="item.type === 'link'" class="msg-content" v-html="item.linkMsg"></div>
+      <!-- 图片 -->
+      <div v-else-if="item.type === 'media'">
+        {{item.id}} <img :src="item.url" class="msg-msg" alt="">
+      </div>
+    </li>
+  </ul>
 </template>
 
 <script lang="ts">
@@ -38,6 +44,7 @@ export default class ContactUserMain extends Vue {
   pageNo = 1
   totalNum = 0
   list: Msg[] = []
+  chatId = 0
 
   @Prop() user!: ContactUser
 
@@ -62,13 +69,39 @@ export default class ContactUserMain extends Vue {
     if (!this.inited) {
       this.inited = true
     }
-    this.totalNum = data.totalNum || 0
     this.pageNo++
+    this.totalNum = data.totalNum || 0
     const list: Msg[] = data.list || []
+    if (!list.length) return
+    this.chatId = list[0].id
+    setTimeout(() => {
+      // https://github.com/rigor789/vue-scrollto#programmatically
+      console.log('scrollTo start', '#chat-' + this.chatId)
+      this.$scrollTo('#chat-' + this.chatId, 1000, {
+        container: '#chat-container',
+        easing: 'ease-in',
+        // lazy: false,
+        offset: -60,
+        force: true,
+        cancelable: true,
+        x: false,
+        y: true,
+        onStart: function(element) {
+          // scrolling started
+          console.log('scrolling started', element)
+        },
+        onDone: function(element) {
+          // scrolling is done
+          console.log('scrolling onDone', element)
+        },
+        onCancel: function() {
+          // scrolling has been interrupted
+          console.log('scrolling onCancel')
+        },
+      })
+      console.log('scrollTo end', '#chat-' + this.chatId)
+    }, 1000)
     list.reverse()
-    // this.list = this.list.concat(list)
-    // this.list.unshift(list)
-
     // 处理链接
     list.forEach(item => {
       if (item.type === 'link') {
@@ -86,7 +119,6 @@ export default class ContactUserMain extends Vue {
       }
     })
     // 拼接消息
-    // this.list = [...list, ...this.list]
     this.list = list.concat(this.list)
   }
 

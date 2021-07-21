@@ -80,12 +80,11 @@ export const getMsgList = async (dscUserId: number, pageNo = 1, pageSize = 10): 
  * @returns 
  */
 export const sendMsg = async (dscUserId: number, type: string, msgCn?: string, url?: string): Promise<any[]> => {
-  console.log('sendMsg:', { direction: 0, dscUserId, type, msgCn, url })
-  // const [err, res] = await http({
-  //   url: '/ttqk/channel/sendMsg',
-  //   params: { direction: 0, dscUserId, type, msgCn, url }
-  // })
-  // return [err, res]
+  const [err, res] = await http({
+    url: '/ttqk/channel/sendMsg',
+    params: { direction: 0, dscUserId, type, msgCn, url }
+  })
+  return [err, res]
 }
 
 // 取所有新消息
