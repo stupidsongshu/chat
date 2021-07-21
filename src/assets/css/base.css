@@ -1,0 +1,17 @@
+* {
+  box-sizing: border-box;
+}
+
+body, ul, p {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  list-style: none;
+}
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
