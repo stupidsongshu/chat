@@ -23,7 +23,7 @@
             <el-input v-model="expression" placeholder="请输入表情" style="width:110px;margin-right:10px;"></el-input>
             <el-link type="primary" :underline="false" @click="doSaveExpression"><i class="el-icon-edit"></i>添加</el-link>
           </div>
-          <el-link slot="reference" style="width:30px;height:30px;font-size: 20px;" :underline="false" @click="doGetExpression">
+          <el-link slot="reference" style="font-size: 20px; font-weight: bold" :underline="false" @click="doGetExpression">
             <!-- <i class="el-icon-user"></i> -->
             <!-- <span style="font-size:20px;">😊</span> -->
             <i class="iconfont icon-Smile"></i>
@@ -53,7 +53,15 @@
     </textarea>
 
     <div class="chat-send">
-      <el-button type="primary" size="mini" round :disabled="disabled" :loading="loading" @click="send('text', msg)">发送</el-button>
+      <el-button
+        type="primary"
+        size="mini"
+        round
+        :disabled="disabled"
+        :loading="loading"
+        @click="send('text', msg)">
+        发送
+      </el-button>
     </div>
   </div>
 </template>
@@ -271,8 +279,12 @@ export default class ChatEdit extends Vue {
 .chat-tools {
   display: flex;
 }
+.chat-tool {
+  display: flex;
+  align-items: center;
+}
 .chat-tool + .chat-tool {
-  margin-left: 10px;
+  margin-left: 15px;
 }
 .msg-commonly {
   display: block;

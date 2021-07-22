@@ -31,7 +31,7 @@ import { ContactUser, Msg } from '@/types'
 
 let inited = false
 let newMsgTimer = 0
-const newMsgInterval = 5000
+// const newMsgInterval = 5000
 
 @Component
 export default class ContactList extends Vue{
@@ -79,7 +79,8 @@ export default class ContactList extends Vue{
       inited = true
       this.updateUser(this.list[0])
       // 定时拉取最新消息
-      newMsgTimer = setInterval(this.doGetNewMsgList, newMsgInterval)
+      // newMsgTimer = setInterval(this.doGetNewMsgList, newMsgInterval)
+      this.doGetNewMsgList()
     }
 
     // 更新用户最新信息（如修改用户备注等操作）

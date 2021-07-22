@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import VueRouter, { RouteConfig } from 'vue-router'
-import { getUrlParams } from '../utils'
+import VueRouter, { RouteConfig, Route } from 'vue-router'
+import { getTokenKey, getUrlParams } from '../utils'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 
@@ -27,18 +27,21 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to: Route, from: Route, next) => {
   const params = getUrlParams(window.location.href)
   const user = params.user || to.query.user
   // console.log('router.beforeEach params:', params)
   // console.log('router.beforeEach:', to, from)
   // console.log('router.beforeEach user:', user)
-  const tokenKey = `token_${user}`
-  const token = window.localStorage.getItem(tokenKey)
-  if (!token && to.path !== '/login') {
+  if (!user) {
     next('/login')
   } else {
-    next()
+    const token = window.localStorage.getItem(getTokenKey(user as string))
+    if (!token && to.path !== '/login') {
+      next('/login')
+    } else {
+      next()
+    }
   }
 })
 

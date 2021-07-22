@@ -17,6 +17,7 @@
 <script lang="ts">
 import { Vue, Component } from 'vue-property-decorator'
 import { login } from '@/utils/api'
+import { getTokenKey } from '@/utils'
 
 @Component
 export default class Login extends Vue {
@@ -47,7 +48,7 @@ export default class Login extends Vue {
     const { data } = res
     if (!data) return
     const token = data.token
-    window.localStorage.setItem('token_' + this.name, token)
+    window.localStorage.setItem(getTokenKey(this.name), token)
     this.$router.replace({
       path: '/',
       query: {

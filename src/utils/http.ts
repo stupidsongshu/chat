@@ -3,6 +3,7 @@ import qs from 'qs'
 import { Message, Loading } from 'element-ui'
 import { ElLoadingComponent } from 'element-ui/types/loading'
 import router from '@/router'
+import { getTokenKey } from '@/utils'
 
 type Headers = {
   [key: string]: string
@@ -44,10 +45,10 @@ const http = (httpConfig: IHttpConfig) => new Promise((resolve, reject) => {
   }
 
   const userName = router.currentRoute.query.user
-  const tokenKey = 'token' + (userName ? `_${userName}` : '')
-  const token = window.localStorage.getItem(tokenKey)
+  // const tokenKey = 'token' + (userName ? `_${userName}` : '')
+  const token = window.localStorage.getItem(getTokenKey(userName as string))
   if (token) {
-    params.token = token
+    params['token'] = token
   }
 
   const requestConfig: AxiosRequestConfig = {

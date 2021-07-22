@@ -1,4 +1,7 @@
+export const getTokenKey = (user: string): string => `token_${user}`
+
 // /(https?:\/\/(([a-zA-Z0-9]+-?)?[a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)(:\d+)?(\/[^\?]*\w*)*(\?[^#]*)?(#[a-zA-Z0-9~!@#$%&*-=_+\[\]:;',.?/|]*)?/
+// 南方暴雨https://36kr.com/p/1321424454633986来了
 export const urlRegExp = /(https?:\/\/(([a-zA-Z0-9]+-?)?[a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)(:\d+)?(\/[^?]*\w*)*(\?[^#]*)?(#[a-zA-Z0-9~!@#$%&*-=_+[\]:;',.?/|]*)?/
 
 // type QueryObject = {
