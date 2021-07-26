@@ -4,7 +4,7 @@ import router from './router'
 import store from './store'
 import '@/assets/css/base.css'
 
-import VueScrollTo from 'vue-scrollto'
+// import VueScrollTo from 'vue-scrollto'
 import infiniteScroll from 'vue-infinite-scroll'
 
 import {
@@ -24,10 +24,11 @@ import {
   Row,
   Col,
   Tag,
-  Popover
+  Popover,
+  Image
 } from 'element-ui'
 
-Vue.use(VueScrollTo)
+// Vue.use(VueScrollTo)
 Vue.use(infiniteScroll)
 Vue.use(Button)
 Vue.use(Input)
@@ -44,6 +45,7 @@ Vue.use(Row)
 Vue.use(Col)
 Vue.use(Tag)
 Vue.use(Popover)
+Vue.use(Image)
 
 Vue.prototype.$message = Message
 Vue.prototype.$loading = Loading.service

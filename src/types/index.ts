@@ -4,7 +4,8 @@ export interface ContactUser {
   userId: number
   dscUserId: number
   salesmanId: number
-  dscUserName: string
+  isBan: number // 0-正常 1-被封
+  dscUserName?: string
   appType: number
   lang?: string
   lastMsg: string

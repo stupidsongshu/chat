@@ -88,6 +88,9 @@ export default class ChatEdit extends Vue {
   get disabled (): boolean {
     return !(this.user.dscUserId && this.msg.trim())
   }
+  get canSendMsg (): boolean {
+    return this.user.isBan === 0 && !!this.user.dscUserName
+  }
 
   insertMsg (data: string): void {
     console.log('insertMsg:', data)
@@ -183,6 +186,13 @@ export default class ChatEdit extends Vue {
   }
 
   async send (type: MsgType, data: string): Promise<void> {
+    if (!this.canSendMsg) {
+      // this.$message({
+      //   message: '账号异常',
+      //   type: 'error'
+      // })
+      return
+    }
     let msgCn = ''
     let url = ''
     if (!this.user.dscUserId) {
@@ -192,7 +202,7 @@ export default class ChatEdit extends Vue {
       })
       return
     }
-    
+
     if (type === 'text') {
       if (!data.trim()) {
         this.$message({
@@ -202,7 +212,7 @@ export default class ChatEdit extends Vue {
         return
       }
       const matchUrl = data.match(urlRegExp)
-      console.log(matchUrl)
+      // console.log('type=link matchUrl:', matchUrl)
       if (matchUrl && matchUrl.length) { // URL
         type = 'link'
         url = matchUrl[0]
@@ -228,7 +238,7 @@ export default class ChatEdit extends Vue {
     // this.loading = true
     // await sendMsg(this.user.userId, this.user.dscUserId, type, msgCn, url)
     // this.loading = false
-    
+
     const msg: Msg = {
       userId: this.user.userId,
       dscUserId: this.user.dscUserId,
@@ -240,7 +250,7 @@ export default class ChatEdit extends Vue {
       url
     }
     this.$emit('sendMsg', msg)
-    
+
     if (type !== 'media') {
       this.msg = ''
     }

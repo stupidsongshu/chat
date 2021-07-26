@@ -51,18 +51,19 @@ export default class ContactUserHeader extends Vue {
   // }
 
   get userName (): string {
-    return this.user.remark || this.user.dscUserName
+    return this.user.remark || this.user.dscUserName || ''
   }
 
   async doSaveRemark(): Promise<void> {
-    if (!this.remark.trim()) {
+    const remark = this.remark.trim()
+    if (!remark) {
       this.$message({
         message: '请输入备注',
         type: 'warning'
       })
       return
     }
-    const [err, res] = await saveRemark(this.user.dscUserId, this.remark)
+    const [err, res] = await saveRemark(this.user.userId, this.user.dscUserId, remark)
     if (err || !res) return
     this.$message({
       message: res.data,
@@ -70,7 +71,9 @@ export default class ContactUserHeader extends Vue {
     })
     this.isEdit = false
     this.remark = ''
-    this.$emit('saveRemark')
+    // this.$emit('saveRemark')
+    this.user.remark = remark
+    this.$store.commit('SET_CONTACT_USER', this.user)
   }
 }
 </script>

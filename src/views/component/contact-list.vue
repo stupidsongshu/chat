@@ -2,10 +2,13 @@
   <div>
     <ul class="contact-list" v-infinite-scroll="doGetContactList" :infinite-scroll-disabled="disabled">
       <li class="contact-item" :class="{selected: user.id === item.id}" v-for="item in list" :key="item.id" @click="updateUser(item)">
-        <el-avatar shape="square" :size="60" :src="item.circleUrl"></el-avatar>
+        <el-avatar shape="square" :size="60" src=""></el-avatar>
         <div class="contact-item-right">
           <div class="contact-item-row">
-            <div class="user-name">{{item.remark || item.dscUserName}}</div>
+            <div class="user-name">
+              <span>{{item.remark || item.dscUserName || '未知'}}</span>
+              <span class="new-msg-count" v-if="item.isBan === 1">封禁</span>
+            </div>
             <div class="last-time">{{formatTime(item.lastTime)}}</div>
           </div>
           <div class="contact-item-row" v-if="item.tag">
@@ -26,12 +29,10 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import dayjs from 'dayjs'
-import { getContactList } from '@/utils/api'
+import { getContactList, getMsgList } from '@/utils/api'
 import { ContactUser } from '@/types'
 
 let inited = false
-// let newMsgTimer = 0
-// const newMsgInterval = 5000
 
 @Component
 export default class ContactList extends Vue{
@@ -39,7 +40,6 @@ export default class ContactList extends Vue{
   pageNo = 1
   pageSize = 20
   totalNum = 0
-  // list: ContactUser[] = []
 
   @Prop() readonly user!: ContactUser
 
@@ -69,10 +69,19 @@ export default class ContactList extends Vue{
     return time ? dayjs(time).format('HH:mm') : ''
   }
 
-  // 更新选中聊天用户信息
   updateUser (user: ContactUser): void {
-    // this.$emit('update:user', user)
-    this.$store.commit('SET_CONTACT_USER', user)
+    // 更新消息提醒
+    const contactUser = this.list.find(item => item.id === user.id)
+    if (contactUser && contactUser.msgCou > 0) {
+      contactUser.msgCou = 0
+      this.$store.commit('SET_CONTACT_LIST', this.list)
+      // 主动调用 getMsgList 通知服务端消息已读
+      if (this.user.id === user.id) {
+        getMsgList(user.userId, user.dscUserId, 1, 20)
+      }
+    }
+    // 更新选中聊天用户信息
+    this.$store.commit('SET_CONTACT_USER', contactUser)
   }
 
   async doGetContactList (): Promise<void> {
@@ -90,44 +99,11 @@ export default class ContactList extends Vue{
     if (!inited) {
       if (list.length) {
         inited = true
+        // 每次初始化后拉取与第一个最新联系人的聊天记录
         this.$store.commit('SET_CONTACT_USER', list[0])
       }
     }
-    // this.list = this.list.concat(list)
-    // if (!this.list.length) return
-    // if (!inited) {
-    //   // 每次初始后拉取第一个最新联系人聊天信息
-    //   inited = true
-    //   this.updateUser(this.list[0])
-    //   // 定时拉取最新消息
-    //   // newMsgTimer = setInterval(this.doGetNewMsgList, newMsgInterval)
-    // } else {
-    //   // 更新联系人最新信息（如修改用户备注等操作）
-    //   const user = this.list.find((item: ContactUser) => item.dscUserId === this.user.dscUserId)
-    //   if (user) {
-    //     this.updateUser(user)
-    //   }
-    // }
   }
-
-  // async doGetNewMsgList (): Promise<void> {
-  //   const [err, res] = await getNewMsgList()
-  //   if (err) return
-  //   const { data } = res
-  //   if (!data) return
-  //   console.log(data)
-  //   // 更新联系人列表提醒
-  //   this.list.forEach(user => user.newMsgCount = 0)
-  //   data.forEach((item: Msg) => {
-  //     if (item.direction === 1) {
-  //       const contactUser = this.list.find((user) => user.dscUserId === item.dscUserId)
-  //       if (contactUser) {
-  //         contactUser.newMsgCount += 1
-  //       }
-  //     }
-  //   })
-  //   // TODO 更新正在聊天人的内容
-  // }
 }
 </script>
 
@@ -173,6 +149,7 @@ export default class ContactList extends Vue{
 }
 .new-msg-count {
   padding: 0 6px;
+  margin-left: 5px;
   border-radius: 5px;
   font-size: 12px;
   color: #fff;

@@ -9,7 +9,6 @@ export const getToken = (): (string | null) => {
 }
 
 export const getWsURL = (): string => {
-  // var socketUrl="http://localhost:8081/ttqk/imserver/"+$("#token").val();
   const token = getToken()
   let url = baseURL + '/ttqk/imserver/' + token
   url = url.replace('https', 'ws').replace('http', 'ws')
@@ -20,17 +19,14 @@ export const getWsURL = (): string => {
 // 南方暴雨https://36kr.com/p/1321424454633986来了
 export const urlRegExp = /(https?:\/\/(([a-zA-Z0-9]+-?)?[a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)(:\d+)?(\/[^?]*\w*)*(\?[^#]*)?(#[a-zA-Z0-9~!@#$%&*-=_+[\]:;',.?/|]*)?/
 
-// type QueryObject = {
-//   [key: string]: any
-// }
-// export const getUrlParams = (url?: string): QueryObject => {
-//   // ?a=1&b=2
-//   url = url || window.location.href
-//   // a=1&b=2
-//   const query = url.split('?')[0]
-//   // ['a=1', 'b=2]
-//   const list = query
-// }
+export const decodeUnicode = (str: string): string => {
+  //先把十六进制unicode编码/u替换为%u
+  // str = str.replace(/\\u/gi,'%u')
+  //再把页面中反斜杠替换为空
+  // str = str.replace(/\\/gi,'')
+  str = str.replace(/\\u/g, '%u')
+  return unescape(str)
+}
 
 interface Params {
   [key: string]: string
@@ -46,8 +42,7 @@ export const getUrlParams = (originUrl: string): Params => {
       continue
     }
     const name = _arrS[i].substring(0, pos)
-    const value = window.decodeURIComponent(_arrS[i].substring(pos + 1))
-    _rs[name] = value
+    _rs[name] = window.decodeURIComponent(_arrS[i].substring(pos + 1))
   }
   return _rs
 }

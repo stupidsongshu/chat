@@ -1,27 +1,21 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-// import { getContactList } from '@/utils/api'
-
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    contactList: [],
-    contactUser: {}
+    contactUser: {},
+    contactList: []
   },
   mutations: {
-    SET_CONTACT_LIST (state, payload) {
-      state.contactList = payload
-    },
     SET_CONTACT_USER (state, payload) {
       state.contactUser = payload
+    },
+    SET_CONTACT_LIST (state, payload) {
+      state.contactList = payload
     }
   },
-  actions: {
-    // async GetContactList ({ commit }): Promise<Array<any>> {
-    // }
-  },
-  modules: {
-  }
+  actions: {},
+  modules: {}
 })

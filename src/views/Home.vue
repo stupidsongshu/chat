@@ -6,7 +6,8 @@
       </el-aside>
       <el-main class="page-main">
         <el-header class="page-header">
-          <ContactUserHeader :user="contactUser" @saveRemark="saveRemark"></ContactUserHeader>
+<!--          <ContactUserHeader :user="contactUser" @saveRemark="saveRemark"></ContactUserHeader>-->
+          <ContactUserHeader :user="contactUser"></ContactUserHeader>
         </el-header>
         <el-main class="chat-main">
           <ContactUserMain ref="contactUserMainRef" :user="contactUser"></ContactUserMain>
@@ -44,19 +45,17 @@ let socket: WebSocket
   },
 })
 export default class Home extends Vue {
-  // chatSaving = false // 发送的消息是否正在保存
-  // contactUser: ContactUser = {} as ContactUser
+  // chatSaving = false // TODO 发送的消息是否正在保存
 
-  get contactList (): ContactUser[] {
-    return this.$store.state.contactList
-  }
+  @Ref() readonly contactListRef!: ContactList
+  @Ref() readonly contactUserMainRef!: ContactUserMain
 
   get contactUser (): ContactUser {
     return this.$store.state.contactUser
   }
-
-  @Ref() readonly contactListRef!: ContactList
-  @Ref() readonly contactUserMainRef!: ContactUserMain
+  get contactList (): ContactUser[] {
+    return this.$store.state.contactList
+  }
 
   mounted (): void {
     if (!inited) {
@@ -65,15 +64,15 @@ export default class Home extends Vue {
     }
   }
 
-  saveRemark (): void {
-    this.contactListRef.doGetContactList()
-  }
+  // saveRemark (): void {
+  //   this.contactListRef.doGetContactList()
+  // }
 
   isSupportWs (): boolean {
     if (typeof(WebSocket) === 'undefined') {
       console.error('您的浏览器不支持WebSocket')
       this.$message({
-        message: '您的浏览器不支持WebSocket，建议更换浏览器后重试',
+        message: '您的浏览器不支持WebSocket，建议升级或更换浏览器后重试',
         type: 'error'
       })
       return false
@@ -83,12 +82,10 @@ export default class Home extends Vue {
 
   openSocket (): void {
     if (!this.isSupportWs()) return
-    console.log('您的浏览器支持WebSocket')
     const socketUrl = getWsURL()
-    console.log('socketUrl:', socketUrl)
     socket = new WebSocket(socketUrl)
     socket.onopen = () => {
-      console.log('websocket已打开')
+      console.log('websocket onopen')
     }
     socket.onmessage = (msg) => {
       // console.log('websocket onmessage:', msg)
@@ -103,28 +100,24 @@ export default class Home extends Vue {
             this.updateContactList(res.obj.list)
             break
           // 新消息
-          // case 'msg':
-          //   this.updateMsg(res.obj)
-          //   break
-          // TODO
-          default:
-            this.updateMsg(res)
+          case 'msg':
+            this.updateMsg(res.obj)
+            break
         }
       } catch (error) {
-        console.warn(error)
+        // console.warn(error)
       }
     }
     socket.onclose = () => {
-      console.log('websocket已关闭')
+      console.warn('websocket onclose')
     }
-    socket.onerror = () => {
-      console.log('websocket发生了错误')
+    socket.onerror = (err) => {
+      console.error('websocket onerror:', err)
     }
   }
 
   sendMsg (msg: Msg): void {
     if (!this.isSupportWs()) return
-    console.log('您的浏览器支持WebSocket')
     socket.send(JSON.stringify(msg))
   }
 
@@ -138,9 +131,9 @@ export default class Home extends Vue {
         tmpList.push(item)
       }
     })
-    console.warn('newList:', newList)
-    console.warn('oldList:', oldList)
-    console.warn('tmpList:', tmpList)
+    // console.warn('newList:', newList)
+    // console.warn('oldList:', oldList)
+    // console.warn('tmpList:', tmpList)
     const list = newList.concat(tmpList)
     this.$store.commit('SET_CONTACT_LIST', list)
   }
@@ -163,6 +156,8 @@ export default class Home extends Vue {
 .page-container {
   position: relative;
   /* border: 1px solid #ddd; */
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
 }
 .page-aside {
   /* height: 100vh; */
