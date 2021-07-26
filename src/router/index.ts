@@ -30,18 +30,26 @@ const router = new VueRouter({
 router.beforeEach((to: Route, from: Route, next) => {
   const params = getUrlParams(window.location.href)
   const user = params.user || to.query.user
+  
+  // if (!user) {
+  //   next('/login')
+  // } else {
+  //   const token = window.localStorage.getItem(getTokenKey(user as string))
+  //   if (!token && to.path !== '/login') {
+  //     next('/login')
+  //   } else {
+  //     next()
+  //   }
+  // }
+  const token = window.localStorage.getItem(getTokenKey(user as string))
   // console.log('router.beforeEach params:', params)
   // console.log('router.beforeEach:', to, from)
   // console.log('router.beforeEach user:', user)
-  if (!user) {
+  // console.log('router.beforeEach token:', token)
+  if (!token && to.path !== '/login') {
     next('/login')
   } else {
-    const token = window.localStorage.getItem(getTokenKey(user as string))
-    if (!token && to.path !== '/login') {
-      next('/login')
-    } else {
-      next()
-    }
+    next()
   }
 })
 

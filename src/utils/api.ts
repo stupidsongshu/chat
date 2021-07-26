@@ -63,29 +63,33 @@ export const saveRemark = async (dscUserId: number, remark: string): Promise<any
 }
 
 // 获取聊天记录
-export const getMsgList = async (dscUserId: number, pageNo = 1, pageSize = 10): Promise<any[]> => {
+export const getMsgList = async (userId: number, dscUserId: number, pageNo = 1, pageSize = 10): Promise<any[]> => {
   const [err, res] = await http({
     url: '/ttqk/channel/getMsgList',
-    params: { dscUserId, pageNo, pageSize }
+    params: { userId, dscUserId, pageNo, pageSize }
   })
   return [err, res]
 }
 
 /**
  * @description 发送消息
- * @param dscUserId 
- * @param type text-纯文字，link-带URL，media-图片
- * @param msgCn type=text||link时有值
- * @param url type=link||media时有值
+ * @param {number} userId 
+ * @param {number} dscUserId 
+ * @param {string} type text-纯文字，link-带URL，media-图片
+ * @param {string} msgCn type=text||link时有值
+ * @param {string} url type=link||media时有值
+ * @param {string} action 类型：sendMsg-发送消息
+ * @param {number} direction 0-我方发送 1-粉丝发送
+ * @param {number} status 0-未发生 1-正在发生 2-发送成功
  * @returns 
  */
-export const sendMsg = async (dscUserId: number, type: string, msgCn?: string, url?: string): Promise<any[]> => {
-  const [err, res] = await http({
-    url: '/ttqk/channel/sendMsg',
-    params: { direction: 0, dscUserId, type, msgCn, url }
-  })
-  return [err, res]
-}
+// export const sendMsg = async (userId: number, dscUserId: number, type: string, msgCn?: string, url?: string): Promise<any[]> => {
+//   const [err, res] = await http({
+//     url: '/ttqk/channel/sendMsg',
+//     params: { action: 'sendMsg', direction: 0, status: 0, userId, dscUserId, type, msgCn, url }
+//   })
+//   return [err, res]
+// }
 
 // 取所有新消息
 export const getNewMsgList = async (): Promise<any[]> => {

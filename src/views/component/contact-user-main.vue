@@ -18,13 +18,13 @@
       <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
       <!-- 纯文本 -->
       <div v-if="item.type === 'text'" class="msg-content">
-        {{item.id}} {{item.msgCn || ' '}}
+        {{item.msgCn || ' '}}
       </div>
       <!-- 含链接 -->
       <div v-else-if="item.type === 'link'" class="msg-content" v-html="item.linkMsg"></div>
       <!-- 图片 -->
       <div v-else-if="item.type === 'media'">
-        {{item.id}} <img :src="item.url" class="msg-msg" alt="">
+        <img :src="item.url" class="msg-msg" alt="">
       </div>
     </li>
   </ul>
@@ -52,16 +52,27 @@ export default class ContactUserMain extends Vue {
     return this.inited && (this.list.length >= this.totalNum)
   }
 
-  @Watch('user.dscUserId', { immediate: false, deep: false })
+  @Watch('user.id', { immediate: false, deep: false })
   onUserIdChange(): void {
+    console.warn('onUserIdChange')
     this.resetCondition()
     this.doGetMsgList()
+  }
+
+  updateNewMsg (msg: Msg): void {
+    // 去重：防止多次插入同一条消息
+    // if (this.list.find(item => item.id === msg.id)) return
+    // 处理消息
+    const list = this.handleMsg([msg])
+    // 拼接消息
+    this.list = this.list.concat(list)
+    // TODO 滚动到底部
   }
 
   async doGetMsgList (): Promise<void> {
     if (this.noMore) return
     this.loading = true
-    const [err, res] = await getMsgList(this.user.dscUserId, this.pageNo, 20)
+    const [err, res] = await getMsgList(this.user.userId, this.user.dscUserId, this.pageNo, 20)
     this.loading = false
     if (err) return
     const { data } = res
@@ -71,38 +82,46 @@ export default class ContactUserMain extends Vue {
     }
     this.pageNo++
     this.totalNum = data.totalNum || 0
-    const list: Msg[] = data.list || []
+    let list: Msg[] = data.list || []
     if (!list.length) return
-    this.chatId = list[0].id
-    setTimeout(() => {
-      // https://github.com/rigor789/vue-scrollto#programmatically
-      console.log('scrollTo start', '#chat-' + this.chatId)
-      this.$scrollTo('#chat-' + this.chatId, 1000, {
-        container: '#chat-container',
-        easing: 'ease-in',
-        // lazy: false,
-        offset: -60,
-        force: true,
-        cancelable: true,
-        x: false,
-        y: true,
-        onStart: function(element) {
-          // scrolling started
-          console.log('scrolling started', element)
-        },
-        onDone: function(element) {
-          // scrolling is done
-          console.log('scrolling onDone', element)
-        },
-        onCancel: function() {
-          // scrolling has been interrupted
-          console.log('scrolling onCancel')
-        },
-      })
-      console.log('scrollTo end', '#chat-' + this.chatId)
-    }, 1000)
+
+    // this.chatId = list[0].id
+    // setTimeout(() => {
+    //   // https://github.com/rigor789/vue-scrollto#programmatically
+    //   console.log('scrollTo start', '#chat-' + this.chatId)
+    //   this.$scrollTo('#chat-' + this.chatId, 1000, {
+    //     container: '#chat-container',
+    //     easing: 'ease-in',
+    //     // lazy: false,
+    //     offset: -60,
+    //     force: true,
+    //     cancelable: true,
+    //     x: false,
+    //     y: true,
+    //     onStart: function(element) {
+    //       // scrolling started
+    //       console.log('scrolling started', element)
+    //     },
+    //     onDone: function(element) {
+    //       // scrolling is done
+    //       console.log('scrolling onDone', element)
+    //     },
+    //     onCancel: function() {
+    //       // scrolling has been interrupted
+    //       console.log('scrolling onCancel')
+    //     },
+    //   })
+    //   console.log('scrollTo end', '#chat-' + this.chatId)
+    // }, 1000)
+
     list.reverse()
-    // 处理链接
+    // 处理消息
+    list = this.handleMsg(list)
+    // 拼接消息
+    this.list = list.concat(this.list)
+  }
+
+  handleMsg (list: Msg[]): Msg[] {
     list.forEach(item => {
       if (item.type === 'link') {
         if (item.msgCn) {
@@ -118,11 +137,11 @@ export default class ContactUserMain extends Vue {
         }
       }
     })
-    // 拼接消息
-    this.list = list.concat(this.list)
+    return list
   }
 
   resetCondition (): void {
+    this.inited = false
     this.pageNo = 1
     this.totalNum = 0
     this.list = []
@@ -149,16 +168,16 @@ export default class ContactUserMain extends Vue {
   justify-content: flex-end;
 }
 .msg-content {
-  min-width: 100px;
+  min-width: 50px;
   max-width: 544px;
   padding: 6px 10px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
   margin-left: 10px;
   line-height: 24px;
   vertical-align: top;
   word-break: break-all;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   background-color: #f2f5fa;
 }

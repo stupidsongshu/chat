@@ -3,7 +3,7 @@ import qs from 'qs'
 import { Message, Loading } from 'element-ui'
 import { ElLoadingComponent } from 'element-ui/types/loading'
 import router from '@/router'
-import { getTokenKey } from '@/utils'
+import { baseURL, getTokenKey } from '@/utils'
 
 type Headers = {
   [key: string]: string
@@ -27,7 +27,7 @@ interface IHttpConfig {
 }
 
 const axiosInstance = axios.create({
-  baseURL: 'http://43.132.166.76:8081'
+  baseURL
 })
 
 const awaitWrap = (promise: Promise<any>) => promise.then((res: any) => [null, res]).catch((err: any) => [err, null])
@@ -45,7 +45,6 @@ const http = (httpConfig: IHttpConfig) => new Promise((resolve, reject) => {
   }
 
   const userName = router.currentRoute.query.user
-  // const tokenKey = 'token' + (userName ? `_${userName}` : '')
   const token = window.localStorage.getItem(getTokenKey(userName as string))
   if (token) {
     params['token'] = token
@@ -60,7 +59,6 @@ const http = (httpConfig: IHttpConfig) => new Promise((resolve, reject) => {
 
   axiosInstance(requestConfig).then((res: AxiosResponse) => {
     // console.log('==res==', url, res)
-
     if (res.status === 200) {
       if (res.data.code === 0) {
         resolve(res.data)

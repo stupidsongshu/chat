@@ -1,4 +1,20 @@
+export const baseURL = 'http://43.132.166.76:8081'
+
 export const getTokenKey = (user: string): string => `token_${user}`
+
+export const getToken = (): (string | null) => {
+  const params = getUrlParams(window.location.href)
+  const user = params.user
+  return window.localStorage.getItem(getTokenKey(user))
+}
+
+export const getWsURL = (): string => {
+  // var socketUrl="http://localhost:8081/ttqk/imserver/"+$("#token").val();
+  const token = getToken()
+  let url = baseURL + '/ttqk/imserver/' + token
+  url = url.replace('https', 'ws').replace('http', 'ws')
+  return url
+}
 
 // /(https?:\/\/(([a-zA-Z0-9]+-?)?[a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)(:\d+)?(\/[^\?]*\w*)*(\?[^#]*)?(#[a-zA-Z0-9~!@#$%&*-=_+\[\]:;',.?/|]*)?/
 // 南方暴雨https://36kr.com/p/1321424454633986来了

@@ -68,8 +68,8 @@
 
 <script lang="ts">
 import { Vue, Component, Prop, Ref } from 'vue-property-decorator'
-import { ContactUser, MsgType } from '@/types'
-import { getExpression, saveExpression, getMsgCommonlyList, sendMsg, uploadImg } from '@/utils/api'
+import { ContactUser, Msg, MsgType } from '@/types'
+import { getExpression, saveExpression, getMsgCommonlyList, uploadImg } from '@/utils/api'
 import { urlRegExp } from '@/utils'
 
 @Component
@@ -225,13 +225,25 @@ export default class ChatEdit extends Vue {
       return
     }
 
-    this.loading = true
-    await sendMsg(this.user.dscUserId, type, msgCn, url)
-    this.loading = false
+    // this.loading = true
+    // await sendMsg(this.user.userId, this.user.dscUserId, type, msgCn, url)
+    // this.loading = false
+    
+    const msg: Msg = {
+      userId: this.user.userId,
+      dscUserId: this.user.dscUserId,
+      action: 'sendMsg', // 类型：sendMsg-发送消息
+      direction: 0, // 0-我方发送 1-粉丝发送
+      status: 0,
+      type,
+      msgCn,
+      url
+    }
+    this.$emit('sendMsg', msg)
+    
     if (type !== 'media') {
       this.msg = ''
     }
-    // this.$emit('sendMsg') // TODO 消息分页、轮询获取最新消息
   }
 
   async sendImage (file: File): Promise<void> {
