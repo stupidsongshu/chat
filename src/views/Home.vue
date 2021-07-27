@@ -2,14 +2,14 @@
   <div class="page page-home">
     <el-container class="page-container">
       <el-aside class="page-aside" width="330px">
-        <ContactList ref="contactListRef" :user="contactUser"></ContactList>
+        <ContactList ref="contactListRef" :user="contactUser" @openSocket="openSocket"></ContactList>
       </el-aside>
       <el-main class="page-main">
         <el-header class="page-header">
           <ContactUserHeader :user="contactUser"></ContactUserHeader>
         </el-header>
         <el-main class="chat-main">
-          <ContactUserMain ref="contactUserMainRef" :user="contactUser" @openSocket="openSocket"></ContactUserMain>
+          <ContactUserMain ref="contactUserMainRef" :user="contactUser"></ContactUserMain>
         </el-main>
         <el-footer class="page-footer" style="height: 200px;">
           <ChatEdit :user="contactUser" @sendMsg="sendMsg"></ChatEdit>
@@ -90,7 +90,7 @@ export default class Home extends Vue {
       //发现消息进入 开始处理前端触发逻辑
       try {
         res = JSON.parse(res)
-        console.log('onmessage msg.data:', res)
+        // console.log('onmessage msg.data:', res)
         switch (res.action) {
           // 联系人列表
           case 'contactList':

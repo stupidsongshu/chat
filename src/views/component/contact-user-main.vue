@@ -1,12 +1,9 @@
 <template>
   <div class="chat-wrapper">
     <ul id="chat-container" class="chat-content">
-<!--      <li v-scroll-to="'#chat-'+chatId">-->
-<!--        <a href="#" v-scroll-to="'#chat-'+chatId">Scroll to {{chatId}}</a>-->
-<!--      </li>-->
-
-      <li v-if="inited" id="prev-msg" class="msg-item" style="justify-content:center;">
-        <el-button v-if="!noMore" type="text" plain loading></el-button>
+      <li v-if="inited && !noMore" class="msg-item" style="justify-content:center;">
+        <!-- <el-button type="text" plain loading></el-button> -->
+        <i class="el-icon-loading"></i>
       </li>
       <li
           v-for="item in list"
@@ -15,7 +12,7 @@
           :class="{'msg-send': item.direction === 0, 'msg-receive': item.direction === 1}"
           :id="'chat-' + item.id">
         <!-- direction: 0-我方发送 1-粉丝发送 -->
-        <el-avatar shape="square" v-if="item.direction === 1" :size="36" src=""></el-avatar>
+        <el-avatar class="user-avatar" shape="square" v-if="item.direction === 1" :size="36" :src="item.img || avatarDefaultUrl"></el-avatar>
         <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
         <!-- 纯文本 -->
         <div v-if="item.type === 'text'" class="msg-content">
@@ -36,7 +33,7 @@
 <script lang="ts">
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import dayjs from 'dayjs'
-import BScroll, {BScrollInstance} from 'better-scroll'
+import BScroll, { BScrollInstance } from 'better-scroll'
 import { ContactUser, Msg } from '@/types'
 import { getMsgList } from '@/utils/api'
 import { urlRegExp, decodeUnicode } from '@/utils'
@@ -50,8 +47,7 @@ export default class ContactUserMain extends Vue {
   pageNo = 1
   totalNum = 0
   list: Msg[] = []
-  imgPreviewSrc = ''
-  // chatId = 0
+  avatarDefaultUrl = require('@/assets/img/avatar.jpg')
 
   @Prop() user!: ContactUser
 
@@ -151,42 +147,11 @@ export default class ContactUserMain extends Vue {
     if (!data) return
     if (!this.inited) {
       this.inited = true
-      this.$emit('openSocket')
     }
     this.pageNo++
     this.totalNum = data.totalNum || 0
     let list: Msg[] = data.list || []
     if (!list.length) return
-
-    // this.chatId = list[0].id
-    // setTimeout(() => {
-    //   // https://github.com/rigor789/vue-scrollto#programmatically
-    //   console.log('scrollTo start', '#chat-' + this.chatId)
-    //   this.$scrollTo('#chat-' + this.chatId, 1000, {
-    //     container: '#chat-container',
-    //     easing: 'ease-in',
-    //     // lazy: false,
-    //     offset: -60,
-    //     force: true,
-    //     cancelable: true,
-    //     x: false,
-    //     y: true,
-    //     onStart: function(element) {
-    //       // scrolling started
-    //       console.log('scrolling started', element)
-    //     },
-    //     onDone: function(element) {
-    //       // scrolling is done
-    //       console.log('scrolling onDone', element)
-    //     },
-    //     onCancel: function() {
-    //       // scrolling has been interrupted
-    //       console.log('scrolling onCancel')
-    //     },
-    //   })
-    //   console.log('scrollTo end', '#chat-' + this.chatId)
-    // }, 1000)
-
     list.reverse()
     // 处理消息
     list = this.handleMsg(list)
@@ -196,9 +161,8 @@ export default class ContactUserMain extends Vue {
 
     this.$nextTick(() => {
       bs.refresh()
-      // this.pageNo >= 2
+      // this.pageNo 始终 >= 2
       if (this.pageNo === 2) { // 第一次加载后滚动到底部
-        // console.log('第一次加载后滚动到底部')
         this.scrollToElement('#chat-bottom')
       } else { // 第二次及以后加载后滚动到指定位置
         const id = oldList[0].id
@@ -217,14 +181,15 @@ export default class ContactUserMain extends Vue {
       }
 
       if (item.type === 'link') {
-        if (item.msgCn) {
-          const matchUrl = item.msgCn.match(urlRegExp)
+        const msg = item.msgCn || item.msg
+        if (msg) {
+          const matchUrl = msg.match(urlRegExp)
           if (matchUrl) {
             const url = matchUrl[0]
             const startIndex = matchUrl['index'] || 0
             const endIndex = startIndex + url.length
-            const start = item.msgCn.substring(0, startIndex)
-            const end = item.msgCn.substring(endIndex)
+            const start = msg.substring(0, startIndex)
+            const end = msg.substring(endIndex)
             item.linkMsg = `${start}<a href="${url}" target="_blank" style="text-decoration: none;color: #409EFF;">${url}</a>${end}`
           }
         }
@@ -260,6 +225,8 @@ export default class ContactUserMain extends Vue {
 .msg-item {
   display: flex;
   align-items: center;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 .msg-send {
   justify-content: flex-end;
@@ -268,15 +235,15 @@ export default class ContactUserMain extends Vue {
   min-width: 50px;
   max-width: 544px;
   padding: 6px 10px;
-  margin-top: 8px;
-  margin-bottom: 8px;
-  margin-left: 10px;
   line-height: 24px;
   vertical-align: top;
   word-break: break-all;
   border-radius: 8px;
   font-size: 14px;
   background-color: #f2f5fa;
+}
+.msg-receive .user-avatar {
+  margin-right: 10px;
 }
 .msg-receive .msg-content {
   border-top-left-radius: 0;

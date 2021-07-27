@@ -19,9 +19,9 @@
               {{item}}
             </span>
           </div>
-          <div>
-            <el-input v-model="expression" placeholder="请输入表情" style="width:110px;margin-right:10px;"></el-input>
-            <el-link type="primary" :underline="false" @click="doSaveExpression"><i class="el-icon-edit"></i>添加</el-link>
+          <div class="custome-item">
+            <el-input v-model="expression" clearable placeholder="请输入表情" style="width:150px;margin-right:10px;"></el-input>
+            <el-link type="primary" :underline="false" @click="doSaveExpression"><i class="el-icon-plus"></i>添加</el-link>
           </div>
           <el-link slot="reference" style="font-size: 20px; font-weight: bold" :underline="false" @click="doGetExpression">
             <!-- <i class="el-icon-user"></i> -->
@@ -36,9 +36,9 @@
           placement="top"
           trigger="click">
           <el-link class="msg-commonly" :underline="false" v-for="item in msgCommonlyList" :key="item.id" @click="insertMsg(item.msg)">{{item.msg}}</el-link>
-          <div>
-            <el-input v-model="msgCommonly" placeholder="请输入常用回复" style="width:130px;margin-right:10px;"></el-input>
-            <el-link type="primary" :underline="false" @click="doSaveMsgCommonly"><i class="el-icon-edit"></i>添加</el-link>
+          <div class="custome-item">
+            <el-input v-model="msgCommonly" clearable placeholder="请输入常用回复" style="width:150px;margin-right:10px;"></el-input>
+            <el-link type="primary" :underline="false" @click="doSaveMsgCommonly"><i class="el-icon-plus"></i>添加</el-link>
           </div>
           <el-link slot="reference" style="font-size: 20px;" :underline="false" @click="doGetMsgCommonlyList">
           <i class="el-icon-chat-line-square"></i>
@@ -99,7 +99,6 @@ export default class ChatEdit extends Vue {
 
   // https://stackoverflow.com/questions/34982381/how-to-insert-at-caret-position-of-contenteditable-using-typescript
   insertMsg (data: string): void {
-    console.log('insertMsg:', data)
     const selectionStart = this.textareaRef.selectionStart
     const selectionEnd = this.textareaRef.selectionEnd
     // if (document.selection) {
@@ -123,6 +122,20 @@ export default class ChatEdit extends Vue {
     e.preventDefault()
     const files = e.dataTransfer?.files || []
     const file = files[0]
+    if (!file) return
+    // 校验文件格式
+    const whiteList = [
+      'image/jpeg',
+      'image/jeg',
+      'image/png',
+      'image/gif',
+    ]
+    if (whiteList.indexOf(file.type) === -1) {
+      this.$message({
+        message: '请上传图片',
+        type: 'warning'
+      })
+    }
     this.sendImage(file)
   }
 
@@ -202,7 +215,9 @@ export default class ChatEdit extends Vue {
     if (!file) return
     const formData = new FormData()
     formData.append('file', file)
+    this.loading = true
     const [err, res] = await uploadImg(formData)
+    this.loading = false
     if (err) return
     const { data } = res
     if (!data) return
@@ -230,6 +245,7 @@ export default class ChatEdit extends Vue {
     const [err, res] = await saveExpression(JSON.stringify([...this.expressionList, expression]))
     if (err) return
     if (!res) return
+    this.expression = ''
     this.doGetExpression()
   }
 
@@ -254,6 +270,7 @@ export default class ChatEdit extends Vue {
     const [err, res] = await saveMsgCommonly(msgCommonly)
     if (err) return
     if (!res) return
+    this.msgCommonly = ''
     this.doGetMsgCommonlyList()
   }
 }
@@ -298,8 +315,12 @@ export default class ChatEdit extends Vue {
 .chat-tool + .chat-tool {
   margin-left: 15px;
 }
+.custome-item {
+  margin-top: 5px;
+}
 .msg-commonly {
   display: block;
+  padding: 5px 0;
 }
 
 .chat-input {

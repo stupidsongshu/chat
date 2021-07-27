@@ -2,7 +2,7 @@
   <div>
     <ul class="contact-list" v-infinite-scroll="doGetContactList" :infinite-scroll-disabled="disabled">
       <li class="contact-item" :class="{selected: user.id === item.id}" v-for="item in list" :key="item.id" @click="updateUser(item)">
-        <el-avatar shape="square" :size="60" src=""></el-avatar>
+        <el-avatar shape="square" :size="60" :src="item.img || avatarDefaultUrl"></el-avatar>
         <div class="contact-item-right">
           <div class="contact-item-row">
             <div class="user-name">
@@ -20,8 +20,8 @@
           </div>
         </div>
       </li>
+      <li class="loading-text" v-if="loading">加载中...</li>
     </ul>
-    <p class="load-text" v-if="loading">加载中...</p>
   </div>
 </template>
 
@@ -38,6 +38,7 @@ export default class ContactList extends Vue{
   loading = false
   pageNo = 1
   totalNum = 0
+  avatarDefaultUrl = require('@/assets/img/avatar.jpg')
 
   @Prop() readonly user!: ContactUser
 
@@ -91,6 +92,8 @@ export default class ContactList extends Vue{
         // 每次初始化后拉取与第一个最新联系人的聊天记录
         this.$store.commit('SET_CONTACT_USER', list[0])
       }
+      // 开始连接 WebSocket
+      this.$emit('openSocket')
     }
   }
 }
@@ -145,7 +148,8 @@ export default class ContactList extends Vue{
   background-color: #f00;
 }
 
-.load-text {
+.loading-text {
+  padding: 5px 0;
   text-align: center;
   font-size: 12px;
   color: #999;

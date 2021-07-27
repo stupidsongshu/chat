@@ -6,6 +6,7 @@ export interface ContactUser {
   salesmanId: number
   isBan: number // 0-正常 1-被封
   dscUserName?: string
+  img?: string // 头像地址
   appType: number
   lang?: string
   lastMsg: string
