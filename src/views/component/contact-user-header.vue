@@ -71,9 +71,10 @@ export default class ContactUserHeader extends Vue {
     })
     this.isEdit = false
     this.remark = ''
-    // this.$emit('saveRemark')
-    this.user.remark = remark
-    this.$store.commit('SET_CONTACT_USER', this.user)
+    this.$store.commit('SET_CONTACT_USER', {
+      ...this.user,
+      remark
+    })
   }
 }
 </script>

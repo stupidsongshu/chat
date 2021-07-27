@@ -36,6 +36,10 @@
           placement="top"
           trigger="click">
           <el-link class="msg-commonly" :underline="false" v-for="item in msgCommonlyList" :key="item.id" @click="insertMsg(item.msg)">{{item.msg}}</el-link>
+          <div>
+            <el-input v-model="msgCommonly" placeholder="请输入常用回复" style="width:130px;margin-right:10px;"></el-input>
+            <el-link type="primary" :underline="false" @click="doSaveMsgCommonly"><i class="el-icon-edit"></i>添加</el-link>
+          </div>
           <el-link slot="reference" style="font-size: 20px;" :underline="false" @click="doGetMsgCommonlyList">
           <i class="el-icon-chat-line-square"></i>
         </el-link>
@@ -69,7 +73,7 @@
 <script lang="ts">
 import { Vue, Component, Prop, Ref } from 'vue-property-decorator'
 import { ContactUser, Msg, MsgType } from '@/types'
-import { getExpression, saveExpression, getMsgCommonlyList, uploadImg } from '@/utils/api'
+import { uploadImg, getExpression, saveExpression, getMsgCommonlyList, saveMsgCommonly } from '@/utils/api'
 import { urlRegExp } from '@/utils'
 
 @Component
@@ -80,6 +84,7 @@ export default class ChatEdit extends Vue {
   expressionList = [] // 表情列表
   // expressionList = ['😔', '😁', '😉', '😱', '😖', '😚', '😝', '😌', '😨', '😷', '😳', '😒', '😰', '😲', '😭', '😜', '😘', '😡', '💪', '👊', '👍', '☝', '👏', '✌', '👎', '🙏', '👌', '👈', '👉', '👆', '👇', '👀', '👃', '👄', '👂', '🍚', '🍝', '🍜', '🍙', '🍧', '🍣', '🎂', '🍞', '🍔', '🍳', '🍟', '🍺', '🍻', '🍸', '☕', '🍎', '🍊', '🍓', '🍉', '💊', '🚬', '🎄', '🌹', '🎉', '🌴', '💝', '🎀', '🎈', '🐚', '💍', '💣', '👑', '🔔', '⭐', '✨', '💨', '💦', '🔥', '🏆', '💰', '💤', '⚡', '👣', '💩', '💉', '♨', '📫', '🔑', '🔒', '✈', '🚄', '🚗', '🚤', '🚲', '🐎', '🚀', '🚌', '⛵', '👩', '👨', '👧', '👦', '🐵', '🐙', '🐷', '🐤', '🐨', '🐮', '🐔', '🐸', '👻', '💀', '🐛', '🐠', '🐶', '🐯', '👼', '🐧', '🐳', '🐭', '👒', '👗', '💄', '👠', '👢', '🌂', '👜', '👙', '👕', '👟', '☁', '☀', '☔', '🌙', '⛄', '⭕', '❌', '❔', '❕', '☎', '📷', '📱', '📠', '💻', '🎥', '🎤', '🔫', '💿', '💓', '♣', '🀄', '〽', '🎰', '🚥', '🚧', '🎸', '💈', '🛀', '🚽', '🏠', '⛪', '🏦', '🏥', '🏨', '🏧', '🏪', '🚹', '🚺']
   msgCommonlyList = [] // 常用回复
+  msgCommonly = ''
 
   @Prop() readonly user!: ContactUser
 
@@ -92,6 +97,7 @@ export default class ChatEdit extends Vue {
     return this.user.isBan === 0 && !!this.user.dscUserName
   }
 
+  // https://stackoverflow.com/questions/34982381/how-to-insert-at-caret-position-of-contenteditable-using-typescript
   insertMsg (data: string): void {
     console.log('insertMsg:', data)
     const selectionStart = this.textareaRef.selectionStart
@@ -110,40 +116,6 @@ export default class ChatEdit extends Vue {
     }
   }
 
-  // handleInput($event): void {
-  //   console.log($event.target.innerHTML)
-  //   this.msg = ($event.target as HTMLInputElement).innerHTML
-  // }
-
-  // https://stackoverflow.com/questions/34982381/how-to-insert-at-caret-position-of-contenteditable-using-typescript
-  // insertNodeAtCaret (node): void {
-  //     const doc = document as any;
-
-  //     var sel, range, html;
-
-  //     function containerIsEditable(selection) {
-  //         return $(selection.anchorNode).parent().hasClass("editable");
-  //     }
-
-  //     if (window.getSelection) {
-  //         sel = window.getSelection();
-  //         // only if it is a caret otherwise it inserts
-  //         // anywhere!
-  //         if (containerIsEditable(sel) && sel.getRangeAt
-  //             && sel.rangeCount) {
-  //             var previousPosition = sel.getRangeAt(0).startOffset;
-  //             sel.getRangeAt(0).insertNode(node);
-  //         }
-  //     }
-  //     else if (doc.selection
-  //         && doc.selection.createRange) {
-  //         range = doc.selection.createRange();
-  //         html = (node.nodeType == 3) ? node.data
-  //             : node.outerHTML;
-  //         range.pasteHTML(html);
-  //     }
-  // }
-
   dragover (e: DragEvent): void {
     e.preventDefault()
   }
@@ -152,37 +124,6 @@ export default class ChatEdit extends Vue {
     const files = e.dataTransfer?.files || []
     const file = files[0]
     this.sendImage(file)
-  }
-
-  async doGetExpression (): Promise<void> {
-    const [err, res] = await getExpression()
-    if (err) return
-    const { data } = res
-    if (!data) return
-    this.expressionList = data
-  }
-
-  async doSaveExpression (): Promise<void> {
-    const expression = this.expression.trim()
-    if (!expression) {
-      this.$message({
-        message: '请输入表情',
-        type: 'warning'
-      })
-      return
-    }
-    const [err, res] = await saveExpression(expression)
-    if (err) return
-    if (!res) return
-    this.doGetExpression()
-  }
-
-  async doGetMsgCommonlyList (): Promise<void> {
-    const [err, res] = await getMsgCommonlyList()
-    if (err) return
-    const { data } = res
-    if (!data) return
-    this.msgCommonlyList = data
   }
 
   async send (type: MsgType, data: string): Promise<void> {
@@ -256,6 +197,7 @@ export default class ChatEdit extends Vue {
     }
   }
 
+  // 发送图片
   async sendImage (file: File): Promise<void> {
     if (!file) return
     const formData = new FormData()
@@ -265,6 +207,54 @@ export default class ChatEdit extends Vue {
     const { data } = res
     if (!data) return
     this.send('media', data)
+  }
+
+  // 表情
+  async doGetExpression (): Promise<void> {
+    const [err, res] = await getExpression()
+    if (err) return
+    const { data } = res
+    if (!data) return
+    this.expressionList = JSON.parse(data) || []
+  }
+
+  async doSaveExpression (): Promise<void> {
+    const expression = this.expression.trim()
+    if (!expression) {
+      this.$message({
+        message: '请输入表情',
+        type: 'warning'
+      })
+      return
+    }
+    const [err, res] = await saveExpression(JSON.stringify([...this.expressionList, expression]))
+    if (err) return
+    if (!res) return
+    this.doGetExpression()
+  }
+
+  // 常用回复
+  async doGetMsgCommonlyList (): Promise<void> {
+    const [err, res] = await getMsgCommonlyList()
+    if (err) return
+    const { data } = res
+    if (!data) return
+    this.msgCommonlyList = data
+  }
+
+  async doSaveMsgCommonly (): Promise<void> {
+    const msgCommonly = this.msgCommonly.trim()
+    if (!msgCommonly) {
+      this.$message({
+        message: '请输入常用回复',
+        type: 'warning'
+      })
+      return
+    }
+    const [err, res] = await saveMsgCommonly(msgCommonly)
+    if (err) return
+    if (!res) return
+    this.doGetMsgCommonlyList()
   }
 }
 </script>
@@ -324,10 +314,4 @@ export default class ChatEdit extends Vue {
 .chat-send {
   text-align: right;
 }
-</style>
-
-<style>
-/* .chat-input textarea {
-  border: none;
-} */
 </style>

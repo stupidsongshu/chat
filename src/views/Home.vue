@@ -6,11 +6,10 @@
       </el-aside>
       <el-main class="page-main">
         <el-header class="page-header">
-<!--          <ContactUserHeader :user="contactUser" @saveRemark="saveRemark"></ContactUserHeader>-->
           <ContactUserHeader :user="contactUser"></ContactUserHeader>
         </el-header>
         <el-main class="chat-main">
-          <ContactUserMain ref="contactUserMainRef" :user="contactUser"></ContactUserMain>
+          <ContactUserMain ref="contactUserMainRef" :user="contactUser" @openSocket="openSocket"></ContactUserMain>
         </el-main>
         <el-footer class="page-footer" style="height: 200px;">
           <ChatEdit :user="contactUser" @sendMsg="sendMsg"></ChatEdit>
@@ -29,12 +28,12 @@ import ContactUserHeader from './component/contact-user-header.vue'
 import ContactUserMain from './component/contact-user-main.vue'
 import ChatEdit from './component/chat-edit.vue'
 
-import { ContactUser, Msg } from '@/types'
-
 import { getWsURL } from '@/utils'
 
-let inited = false
+import { ContactUser, Msg } from '@/types'
+
 let socket: WebSocket
+let heartTimer = 0
 
 @Component({
   components: {
@@ -45,7 +44,7 @@ let socket: WebSocket
   },
 })
 export default class Home extends Vue {
-  // chatSaving = false // TODO 发送的消息是否正在保存
+  // chatSaving = false // TODO 待优化 发送的消息是否正在保存
 
   @Ref() readonly contactListRef!: ContactList
   @Ref() readonly contactUserMainRef!: ContactUserMain
@@ -56,17 +55,6 @@ export default class Home extends Vue {
   get contactList (): ContactUser[] {
     return this.$store.state.contactList
   }
-
-  mounted (): void {
-    if (!inited) {
-      inited = true
-      this.openSocket()
-    }
-  }
-
-  // saveRemark (): void {
-  //   this.contactListRef.doGetContactList()
-  // }
 
   isSupportWs (): boolean {
     if (typeof(WebSocket) === 'undefined') {
@@ -86,6 +74,15 @@ export default class Home extends Vue {
     socket = new WebSocket(socketUrl)
     socket.onopen = () => {
       console.log('websocket onopen')
+      // 每10秒发送心跳
+      if (heartTimer) {
+        clearInterval(heartTimer)
+      }
+      heartTimer = setInterval(() => {
+        socket.send(JSON.stringify({
+          action: '心跳'
+        }))
+      }, 10000)
     }
     socket.onmessage = (msg) => {
       // console.log('websocket onmessage:', msg)
@@ -97,19 +94,22 @@ export default class Home extends Vue {
         switch (res.action) {
           // 联系人列表
           case 'contactList':
-            this.updateContactList(res.obj.list)
+            this.socketContactList(res.obj.list)
             break
           // 新消息
           case 'msg':
-            this.updateMsg(res.obj)
+            this.socketMsg(res.obj)
             break
         }
       } catch (error) {
         // console.warn(error)
       }
     }
-    socket.onclose = () => {
-      console.warn('websocket onclose')
+    socket.onclose = (err) => {
+      console.warn('websocket onclose:', err)
+      // 断开重连
+      console.log('断开重连...')
+      this.openSocket()
     }
     socket.onerror = (err) => {
       console.error('websocket onerror:', err)
@@ -121,7 +121,7 @@ export default class Home extends Vue {
     socket.send(JSON.stringify(msg))
   }
 
-  updateContactList (newList: ContactUser[]): void {
+  socketContactList (newList: ContactUser[]): void {
     // 去重
     const tmpList: ContactUser[] = []
     const oldList = cloneDeep(this.contactList)
@@ -138,7 +138,7 @@ export default class Home extends Vue {
     this.$store.commit('SET_CONTACT_LIST', list)
   }
 
-  updateMsg (msg: Msg): void {
+  socketMsg (msg: Msg): void {
     if (this.contactUser.userId === msg.userId && this.contactUser.dscUserId === msg.dscUserId) {
       this.contactUserMainRef.updateNewMsg(msg)
     }

@@ -6,8 +6,6 @@
 <!--      </li>-->
 
       <li v-if="inited" id="prev-msg" class="msg-item" style="justify-content:center;">
-<!--        <el-link v-if="!noMore" type="primary" @click="doGetMsgList">上一页</el-link>-->
-<!--        <span v-else style="font-size:12px;color:#999;">没有更多了</span>-->
         <el-button v-if="!noMore" type="text" plain loading></el-button>
       </li>
       <li
@@ -21,7 +19,7 @@
         <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
         <!-- 纯文本 -->
         <div v-if="item.type === 'text'" class="msg-content">
-          {{item.msgCn}}
+          {{item.msgCn || item.msg}}
         </div>
         <!-- 含链接 -->
         <div v-else-if="item.type === 'link'" class="msg-content" v-html="item.linkMsg"></div>
@@ -146,13 +144,14 @@ export default class ContactUserMain extends Vue {
   async doGetMsgList (): Promise<void> {
     if (this.noMore) return
     this.loading = true
-    const [err, res] = await getMsgList(this.user.userId, this.user.dscUserId, this.pageNo, 20)
+    const [err, res] = await getMsgList(this.user.userId, this.user.dscUserId, this.pageNo)
     this.loading = false
     if (err) return
     const { data } = res
     if (!data) return
     if (!this.inited) {
       this.inited = true
+      this.$emit('openSocket')
     }
     this.pageNo++
     this.totalNum = data.totalNum || 0

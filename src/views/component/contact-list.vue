@@ -22,7 +22,6 @@
       </li>
     </ul>
     <p class="load-text" v-if="loading">加载中...</p>
-    <!-- <p class="load-text" v-if="noMore">没有更多了</p> -->
   </div>
 </template>
 
@@ -38,7 +37,6 @@ let inited = false
 export default class ContactList extends Vue{
   loading = false
   pageNo = 1
-  pageSize = 20
   totalNum = 0
 
   @Prop() readonly user!: ContactUser
@@ -54,30 +52,21 @@ export default class ContactList extends Vue{
     return this.loading || this.noMore
   }
 
-  // mounted (): void {
-  //   this.doGetContactList()
-  // }
-
-  // beforeDestroy (): void {
-  //   if (newMsgTimer) {
-  //     clearInterval(newMsgTimer)
-  //   }
-  // }
-
   formatTime (time: number): string {
     // return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
     return time ? dayjs(time).format('HH:mm') : ''
   }
 
   updateUser (user: ContactUser): void {
-    // 更新消息提醒
     const contactUser = this.list.find(item => item.id === user.id)
-    if (contactUser && contactUser.msgCou > 0) {
+    if (!contactUser) return
+    // 更新消息提醒
+    if (contactUser.msgCou > 0) {
       contactUser.msgCou = 0
       this.$store.commit('SET_CONTACT_LIST', this.list)
-      // 主动调用 getMsgList 通知服务端消息已读
+      // 正在聊天的联系人，主动调用 getMsgList 通知服务端消息已读
       if (this.user.id === user.id) {
-        getMsgList(user.userId, user.dscUserId, 1, 20)
+        getMsgList(user.userId, user.dscUserId, 1)
       }
     }
     // 更新选中聊天用户信息
@@ -87,18 +76,18 @@ export default class ContactList extends Vue{
   async doGetContactList (): Promise<void> {
     if (inited && this.noMore) return
     this.loading = true
-    const [err, res] = await getContactList(this.pageNo, this.pageSize)
+    const [err, res] = await getContactList(this.pageNo)
     this.loading = false
     if (err) return
     const { data } = res
     if (!data) return
-    this.totalNum = data.totalNum || 0
     this.pageNo++
+    this.totalNum = data.totalNum || 0
     const list = data.list || []
     this.$store.commit('SET_CONTACT_LIST', this.list.concat(list))
     if (!inited) {
+      inited = true
       if (list.length) {
-        inited = true
         // 每次初始化后拉取与第一个最新联系人的聊天记录
         this.$store.commit('SET_CONTACT_USER', list[0])
       }
