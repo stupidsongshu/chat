@@ -1,7 +1,10 @@
 <template>
   <el-row class="contact-user-header" type="flex" justify="between">
-    <el-col :span="8">{{userName}}</el-col>
-    <el-col :span="16" class="remark">
+    <el-col :span="20">
+      <div>{{this.user.dscUserName}}</div>
+      <div>{{this.user.remark}}</div>
+    </el-col>
+    <el-col :span="4" class="remark">
       <el-popover
         trigger="hover"
         placement="bottom"
@@ -30,9 +33,9 @@ export default class ContactUserHeader extends Vue {
 
   @Prop() user!: ContactUser
 
-  get userName (): string {
-    return this.user.remark || this.user.dscUserName || ''
-  }
+  // get userName (): string {
+  //   return this.user.remark || this.user.dscUserName || ''
+  // }
 
   async doSaveRemark(): Promise<void> {
     const remark = this.remark.trim()

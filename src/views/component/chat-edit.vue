@@ -3,6 +3,7 @@
     <ul class="chat-tools">
       <li class="chat-tool">
         <el-popover
+          ref="emoji-popover"
           width="430"
           placement="top"
           trigger="click">
@@ -32,6 +33,7 @@
       </li>
       <li class="chat-tool">
         <el-popover
+          ref="msg-commonly-popover"
           width="300"
           placement="top"
           trigger="click">
@@ -231,6 +233,10 @@ export default class ChatEdit extends Vue {
     const { data } = res
     if (!data) return
     this.expressionList = JSON.parse(data) || []
+    // fix element-ui的 popover 组件位置偏移
+    this.$nextTick(() => {
+      (this.$refs['emoji-popover'] as any).updatePopper()
+    })
   }
 
   async doSaveExpression (): Promise<void> {
@@ -256,6 +262,9 @@ export default class ChatEdit extends Vue {
     const { data } = res
     if (!data) return
     this.msgCommonlyList = data
+    this.$nextTick(() => {
+      (this.$refs['msg-commonly-popover'] as any).updatePopper()
+    })
   }
 
   async doSaveMsgCommonly (): Promise<void> {

@@ -6,7 +6,7 @@
         <div class="contact-item-right">
           <div class="contact-item-row">
             <div class="user-name">
-              <span>{{item.remark || item.dscUserName || '未知'}}</span>
+              <span>{{item.dscUserName || '未知'}}</span>
               <span class="new-msg-count" v-if="item.isBan === 1">封禁</span>
             </div>
             <div class="last-time">{{formatTime(item.lastTime)}}</div>
