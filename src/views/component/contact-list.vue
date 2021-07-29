@@ -20,7 +20,11 @@
           </div>
         </div>
       </li>
-      <li class="loading-text" v-if="loading">加载中...</li>
+      <li class="loading-text" v-if="loading">
+        <el-button type="text" plain size="mini">
+          <i class="el-icon-loading"></i> 加载中...
+        </el-button>
+      </li>
     </ul>
   </div>
 </template>

@@ -2,15 +2,6 @@
   <el-row class="contact-user-header" type="flex" justify="between">
     <el-col :span="8">{{userName}}</el-col>
     <el-col :span="16" class="remark">
-      <!-- <template v-if="!isEdit">
-        <el-link type="primary" @click="isEdit = true"><i class="el-icon-edit"></i>修改</el-link>
-      </template>
-      <template v-else>
-        <el-input v-model="remark" placeholder="请输入备注" style="margin-right:10px;"></el-input>
-        <el-button size="mini" plain type="text" @click="isEdit = false">取消</el-button>
-        <el-button size="mini" plain type="text" @click="doSaveRemark">确认</el-button>
-      </template> -->
-
       <el-popover
         trigger="hover"
         placement="bottom"
@@ -29,7 +20,6 @@
 
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
-// import { ElInput } from 'element-ui/types/input'
 import { ContactUser } from '@/types'
 import { saveRemark } from '@/utils/api'
 
@@ -39,16 +29,6 @@ export default class ContactUserHeader extends Vue {
   remark = ''
 
   @Prop() user!: ContactUser
-
-  // @Ref() readonly remarkRef!: ElInput
-
-  // @Watch('isEdit')
-  // onIsEditChange(val: boolean): void {
-  //   if (val) {
-  //     this.remarkRef.focus()
-  //     console.log('onIsEditChange focus')
-  //   }
-  // }
 
   get userName (): string {
     return this.user.remark || this.user.dscUserName || ''

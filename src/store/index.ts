@@ -18,7 +18,6 @@ export default new Vuex.Store({
     contactUser: {},
     contactList: [],
     userChatMap: {} as IUserChatMap
-    // userChatMap: [] as IUserChat[]
   },
   mutations: {
     SET_CONTACT_USER (state, payload) {
@@ -29,13 +28,6 @@ export default new Vuex.Store({
     },
     SET_USER_CHAT_MAP (state, payload: IUserChat) {
       state.userChatMap[payload.id] = payload.list
-      // const index = state.userChatMap.findIndex(item => item.id === payload.id)
-      // if (index === -1) {
-      //   state.userChatMap.push(payload)
-      // } else {
-      //   // const userChatItem = state.userChatMap[index]
-      //   state.userChatMap [index] = payload
-      // }
     },
   },
   actions: {},
