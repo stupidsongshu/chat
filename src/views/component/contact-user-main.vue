@@ -62,9 +62,14 @@ export default class ContactUserMain extends Vue {
     // 1. 优先从缓存中取聊天记录
     const userChatMap = this.$store.state.userChatMap
     const list: Msg[] = userChatMap[id]
-    console.log('onUserIdChange userChatMap:', id, list)
     if (list && list.length) {
       this.list = list
+      if (bs) {
+        this.$nextTick(() => {
+          bs.refresh()
+          this.scrollToElement('#chat-bottom')
+        })
+      }
     }
 
     // 2. 再从接口获取最新数据
@@ -130,7 +135,7 @@ export default class ContactUserMain extends Vue {
     }
   }
 
-  scrollToElement (el: HTMLElement | string): void {
+  scrollToElement (el: string | HTMLElement): void {
     bs.scrollToElement(el, 300, true, true)
   }
 
@@ -141,6 +146,8 @@ export default class ContactUserMain extends Vue {
     const list = this.handleMsg([msg])
     // 拼接消息
     this.list = this.list.concat(list)
+    // 缓存消息
+    this.saveChatList(this.list)
     this.$nextTick(() => {
       bs.refresh()
       this.scrollToElement('#chat-bottom')
@@ -163,12 +170,14 @@ export default class ContactUserMain extends Vue {
     let list: Msg[] = data.list || []
     if (!list.length) return
     list.reverse()
+    // 去重
+    list = this.uniqueMsgList(list, this.list)
     // 处理消息
     list = this.handleMsg(list)
     // 拼接消息
     const oldList = this.list
     this.list = list.concat(this.list)
-    // 缓存聊天消息
+    // 缓存消息
     this.saveChatList(this.list)
 
     this.$nextTick(() => {
@@ -223,20 +232,21 @@ export default class ContactUserMain extends Vue {
     return dayjs(time).format('YYYY-MM-DD HH:mm')
   }
 
-  saveChatList (list: Msg[]): void {
-    // this.$store.commit('SET_USER_CHAT_MAP_LIST', {
-    //   id: this.user.id,
-    //   list
-    // })
+  uniqueMsgList (newList: Msg[], oldList: Msg[]): Msg[] {
+    if (!oldList.length) {
+      return newList
+    }
+    const list: Msg[] = []
+    newList.forEach(item => {
+      if (!oldList.find(oldItem => oldItem.id === item.id)) {
+        list.push(item)
+      }
+    })
+    return list
+  }
 
-    const userChatMap = this.$store.state.userChatMap
-    userChatMap[this.user.id] = list
-    // let oldList = cloneDeep(userChatMap[this.user.id])
-    // // console.log('oldList:', this.user.id, oldList)
-    // oldList = list
-    // userChatMap[this.user.id] = oldList
-    // console.log('缓存聊天消息:', this.user.id, userChatMap)
-    this.$store.commit('SET_USER_CHAT_MAP_LIST', userChatMap)
+  saveChatList (list: Msg[]): void {
+    this.$store.commit('SET_USER_CHAT_MAP', { id: this.user.id, list })
   }
 }
 </script>
