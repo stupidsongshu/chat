@@ -293,5 +293,7 @@ export default class ContactUserMain extends Vue {
 }
 .msg-img {
   max-width: 200px;
+  border-radius: 10px;
+  border: 1px solid #eee;
 }
 </style>

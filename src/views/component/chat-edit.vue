@@ -63,7 +63,6 @@
         type="primary"
         size="mini"
         round
-        :disabled="disabled"
         :loading="loading"
         @click="send('text', msg)">
         发送
@@ -95,8 +94,8 @@ export default class ChatEdit extends Vue {
   get disabled (): boolean {
     return !(this.user.dscUserId && this.msg.trim())
   }
-  get canSendMsg (): boolean {
-    return this.user.isBan === 0 && !!this.user.dscUserName
+  get disableSendMsg (): boolean {
+    return this.user.isBan === 1 || !this.user.dscUserName
   }
 
   // https://stackoverflow.com/questions/34982381/how-to-insert-at-caret-position-of-contenteditable-using-typescript
@@ -142,11 +141,19 @@ export default class ChatEdit extends Vue {
   }
 
   async send (type: MsgType, data: string): Promise<void> {
-    if (!this.canSendMsg) {
-      // this.$message({
-      //   message: '账号异常',
-      //   type: 'error'
-      // })
+    if (this.disableSendMsg) {
+      if (this.user.isBan === 1) {
+        this.$message({
+          message: '账号已封禁',
+          type: 'error'
+        })
+      }
+      if (!this.user.dscUserName) {
+        this.$message({
+          message: '没有userName',
+          type: 'error'
+        })
+      }
       return
     }
     let msgCn = ''

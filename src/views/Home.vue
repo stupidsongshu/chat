@@ -96,9 +96,13 @@ export default class Home extends Vue {
           case 'contactList':
             this.socketContactList(res.obj.list)
             break
-          // 新消息
+          // 发送消息
           case 'msg':
-            this.socketMsg(res.obj)
+            this.socketNewMsg(res.obj)
+            break
+          // 收到新消息
+          case 'newMsg':
+            this.socketNewMsg(res.obj)
             break
         }
       } catch (error) {
@@ -138,7 +142,7 @@ export default class Home extends Vue {
     this.$store.commit('SET_CONTACT_LIST', list)
   }
 
-  socketMsg (msg: Msg): void {
+  socketNewMsg (msg: Msg): void {
     if (this.contactUser.userId === msg.userId && this.contactUser.dscUserId === msg.dscUserId) {
       this.contactUserMainRef.updateNewMsg(msg)
     }
