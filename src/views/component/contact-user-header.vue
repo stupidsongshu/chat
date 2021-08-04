@@ -1,8 +1,11 @@
 <template>
   <el-row class="contact-user-header" type="flex" justify="between">
-    <el-col :span="20">
+    <el-col :span="10">
       <div>{{this.user.dscUserName}}</div>
       <div>{{this.user.remark}}</div>
+    </el-col>
+    <el-col :span="10">
+      {{firstName}}
     </el-col>
     <el-col :span="4" class="remark">
       <el-popover
@@ -22,20 +25,31 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component, Prop } from 'vue-property-decorator'
+import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import { ContactUser } from '@/types'
-import { saveRemark } from '@/utils/api'
+import { getAccount, saveRemark } from '@/utils/api'
 
 @Component
 export default class ContactUserHeader extends Vue {
   isEdit = false
   remark = ''
+  firstName = ''
 
   @Prop() user!: ContactUser
 
-  // get userName (): string {
-  //   return this.user.remark || this.user.dscUserName || ''
-  // }
+  @Watch('user.id')
+  onUserIdChange (): void {
+    this.doGetAccount()
+  }
+
+  async doGetAccount(): Promise<void> {
+    const [err, res] = await getAccount(this.user.userId, this.user.dscUserId)
+    if (err) return
+    if (!res) return
+    const { data } = res
+    if (!data) return
+    this.firstName = data.firstName
+  }
 
   async doSaveRemark(): Promise<void> {
     const remark = this.remark.trim()

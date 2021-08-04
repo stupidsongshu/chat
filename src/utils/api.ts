@@ -26,17 +26,24 @@ export const getContactList = async (pageNo = 1, pageSize = 20): Promise<any[]> 
   return [err, res]
 }
 
+export const getAccount = async (userId: number, dscUserId: number): Promise<any[]> => {
+  const [err, res] = await http({
+    url: '/ttqk/channel/getAccount',
+    params: { userId, dscUserId }
+  })
+  return [err, res]
+}
+
 /**
  * @description 获取聊天记录
  * @param {number} userId
- * @param {number} dscUserId
  * @param {number} pageNo
  * @param {number} pageSize
  */
-export const getMsgList = async (userId: number, dscUserId: number, pageNo = 1, pageSize = 20): Promise<any[]> => {
+export const getMsgList = async (userId: number, pageNo = 1, pageSize = 20): Promise<any[]> => {
   const [err, res] = await http({
     url: '/ttqk/channel/getMsgList',
-    params: { userId, dscUserId, pageNo, pageSize }
+    params: { userId, pageNo, pageSize }
   })
   return [err, res]
 }
@@ -128,11 +135,15 @@ export const getMsgCommonlyList = async (): Promise<any[]> => {
   return [err, res]
 }
 
-// 保存常用回复
-export const saveMsgCommonly = async (msg: string): Promise<any[]> => {
+/**
+ * @description 保存常用回复
+ * @param {string} msg 回复内容
+ * @param {number} is_delete 0-不删除 1-删除
+ */
+export const saveMsgCommonly = async (msg: string, is_delete = 0): Promise<any[]> => {
   const [err, res] = await http({
     url: '/ttqk/channel/saveMsgCommonly',
-    params: { msg }
+    params: { msg, is_delete }
   })
   return [err, res]
 }

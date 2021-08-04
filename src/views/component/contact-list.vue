@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ul class="contact-list" v-infinite-scroll="doGetContactList" :infinite-scroll-disabled="disabled">
+    <ul class="contact-list" v-infinite-scroll="doGetContactList" infinite-scroll-immediate-check="false" :infinite-scroll-disabled="disabled">
       <li class="contact-item" :class="{selected: user.id === item.id}" v-for="item in list" :key="item.id" @click="updateUser(item)">
         <el-avatar shape="square" :size="60" :src="item.img || avatarDefaultUrl"></el-avatar>
         <div class="contact-item-right">
@@ -15,7 +15,7 @@
             <el-tag size="mini">{{item.tag}}</el-tag>
           </div>
           <div class="contact-item-row">
-            <div class="last-msg">{{item.lastMsg}}</div>
+            <div class="last-msg">{{decodeStr(item.lastMsg)}}</div>
             <span class="new-msg-count" v-if="item.msgCou > 0">{{item.msgCou}}</span>
           </div>
         </div>
@@ -32,6 +32,7 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import dayjs from 'dayjs'
+import { decodeUnicode } from '@/utils'
 import { getContactList, getMsgList } from '@/utils/api'
 import { ContactUser } from '@/types'
 
@@ -57,6 +58,10 @@ export default class ContactList extends Vue{
     return this.loading || this.noMore
   }
 
+  decodeStr (str: string): string {
+    return decodeUnicode(str)
+  }
+
   formatTime (time: number): string {
     // return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
     return time ? dayjs(time).format('HH:mm') : ''
@@ -71,14 +76,14 @@ export default class ContactList extends Vue{
       this.$store.commit('SET_CONTACT_LIST', this.list)
       // 正在聊天的联系人，主动调用 getMsgList 通知服务端消息已读
       if (this.user.id === user.id) {
-        getMsgList(user.userId, user.dscUserId, 1)
+        getMsgList(user.userId, 1)
       }
     }
     // 更新选中聊天用户信息
     this.$store.commit('SET_CONTACT_USER', contactUser)
   }
 
-  async doGetContactList (): Promise<void> {
+  async doGetContactList1 (): Promise<void> {
     if (inited && this.noMore) return
     this.loading = true
     const [err, res] = await getContactList(this.pageNo)
@@ -100,6 +105,12 @@ export default class ContactList extends Vue{
       this.$emit('openSocket')
     }
   }
+
+  doGetContactList (): void {
+    console.log('doGetContactList 0')
+    if (inited && this.noMore) return
+    console.log('doGetContactList 1')
+  }
 }
 </script>
 
@@ -118,10 +129,10 @@ export default class ContactList extends Vue{
   border-bottom: 1px solid #ddd;
 }
 .contact-item:hover {
-  background-color: #f2f5fa;
+  background-color: #dfdfdf;
 }
 .contact-item.selected {
-  background-color: #f2f5fa;
+  background-color: #dfdfdf;
 }
 
 .contact-item-right {

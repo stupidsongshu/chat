@@ -56,6 +56,10 @@ export default class Home extends Vue {
     return this.$store.state.contactList
   }
 
+  mounted (): void {
+    this.openSocket()
+  }
+
   isSupportWs (): boolean {
     if (typeof(WebSocket) === 'undefined') {
       console.error('您的浏览器不支持WebSocket')
@@ -79,34 +83,41 @@ export default class Home extends Vue {
         clearInterval(heartTimer)
       }
       heartTimer = setInterval(() => {
-        socket.send(JSON.stringify({
-          action: '心跳'
-        }))
+        socket.send(JSON.stringify({ action: '心跳' }))
       }, 10000)
     }
     socket.onmessage = (msg) => {
       // console.log('websocket onmessage:', msg)
       let res = msg.data
-      //发现消息进入 开始处理前端触发逻辑
-      try {
-        res = JSON.parse(res)
-        // console.log('onmessage msg.data:', res)
-        switch (res.action) {
-          // 联系人列表
-          case 'contactList':
-            this.socketContactList(res.obj.list)
-            break
-          // 发送消息
-          case 'msg':
-            this.socketNewMsg(res.obj)
-            break
-          // 收到新消息
-          case 'newMsg':
-            this.socketNewMsg(res.obj)
-            break
+      if (res === '连接成功') {
+        socket.send(JSON.stringify({ action: 'getContactList', pageNo: 1, pageSize: 20 }))
+      } else {
+        try {
+          res = JSON.parse(res)
+          // console.log('onmessage msg.data:', res)
+          switch (res.action) {
+            // 联系人列表
+            case 'contactList':
+              this.socketContactList(res.obj.list)
+              break
+            // 聊天记录
+            case 'msgList':
+              break
+            // 账户信息
+            case 'action':
+              break
+            // 发送消息
+            case 'msg':
+              this.socketNewMsg(res.obj)
+              break
+            // 收到新消息
+            case 'newMsg':
+              this.socketNewMsg(res.obj)
+              break
+          }
+        } catch (error) {
+          console.error(error)
         }
-      } catch (error) {
-        // console.warn(error)
       }
     }
     socket.onclose = (err) => {

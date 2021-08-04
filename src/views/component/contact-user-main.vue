@@ -54,14 +54,16 @@ export default class ContactUserMain extends Vue {
   get noMore (): boolean {
     return this.inited && (this.list.length >= this.totalNum)
   }
+  get userChatMap (): { [id: number]: Msg[] } {
+    return this.$store.state.userChatMap
+  }
 
   @Watch('user.id', { immediate: false, deep: false })
   onUserIdChange(id: number): void {
     this.resetCondition()
 
     // 1. 优先从缓存中取聊天记录
-    const userChatMap = this.$store.state.userChatMap
-    const list: Msg[] = userChatMap[id]
+    const list: Msg[] = this.userChatMap[id]
     if (list && list.length) {
       this.list = list
       if (bs) {
@@ -157,7 +159,7 @@ export default class ContactUserMain extends Vue {
   async doGetMsgList (): Promise<void> {
     if (this.noMore) return
     this.loading = true
-    const [err, res] = await getMsgList(this.user.userId, this.user.dscUserId, this.pageNo)
+    const [err, res] = await getMsgList(this.user.userId, this.pageNo)
     this.loading = false
     if (err) return
     const { data } = res

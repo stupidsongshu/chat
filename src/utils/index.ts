@@ -20,6 +20,7 @@ export const getWsURL = (): string => {
 export const urlRegExp = /(https?:\/\/(([a-zA-Z0-9]+-?)?[a-zA-Z0-9]+\.)+[a-zA-Z0-9]+)(:\d+)?(\/[^?]*\w*)*(\?[^#]*)?(#[a-zA-Z0-9~!@#$%&*-=_+[\]:;',.?/|]*)?/
 
 export const decodeUnicode = (str: string): string => {
+  if (!str) return str
   //先把十六进制unicode编码/u替换为%u
   // str = str.replace(/\\u/gi,'%u')
   //再把页面中反斜杠替换为空

@@ -17,7 +17,8 @@ export default new Vuex.Store({
   state: {
     contactUser: {},
     contactList: [],
-    userChatMap: {} as IUserChatMap
+    userChatMap: {} as IUserChatMap,
+    userAccount: {}
   },
   mutations: {
     SET_CONTACT_USER (state, payload) {
@@ -28,6 +29,9 @@ export default new Vuex.Store({
     },
     SET_USER_CHAT_MAP (state, payload: IUserChat) {
       state.userChatMap[payload.id] = payload.list
+    },
+    SET_USER_ACCOUNT (state, payload) {
+      state.userAccount = payload
     },
   },
   actions: {},

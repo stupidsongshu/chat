@@ -4,7 +4,7 @@
       <li class="chat-tool">
         <el-popover
           ref="emoji-popover"
-          width="430"
+          width="300"
           placement="top"
           trigger="click">
           <!-- <ul class="emoji-list">
@@ -20,7 +20,7 @@
               {{item}}
             </span>
           </div>
-          <div class="custome-item">
+          <div class="custom-item">
             <el-input v-model="expression" clearable placeholder="请输入表情" style="width:150px;margin-right:10px;"></el-input>
             <el-link type="primary" :underline="false" @click="doSaveExpression"><i class="el-icon-plus"></i>添加</el-link>
           </div>
@@ -38,7 +38,7 @@
           placement="top"
           trigger="click">
           <el-link class="msg-commonly" :underline="false" v-for="item in msgCommonlyList" :key="item.id" @click="insertMsg(item.msg)">{{item.msg}}</el-link>
-          <div class="custome-item">
+          <div class="custom-item">
             <el-input v-model="msgCommonly" clearable placeholder="请输入常用回复" style="width:150px;margin-right:10px;"></el-input>
             <el-link type="primary" :underline="false" @click="doSaveMsgCommonly"><i class="el-icon-plus"></i>添加</el-link>
           </div>
@@ -331,12 +331,15 @@ export default class ChatEdit extends Vue {
 .chat-tool + .chat-tool {
   margin-left: 15px;
 }
-.custome-item {
+.custom-item {
   margin-top: 5px;
 }
 .msg-commonly {
   display: block;
   padding: 5px 0;
+}
+.msg-commonly:hover {
+  background-color: #f2f2f2;
 }
 
 .chat-input {
