@@ -6,7 +6,7 @@
         <i class="el-icon-loading"></i>
       </li>
       <li
-          v-for="item in list"
+          v-for="(item, index) in list"
           :key="item.id"
           class="msg-item"
           :class="{'msg-send': item.direction === 0, 'msg-receive': item.direction === 1}"
@@ -16,7 +16,14 @@
         <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
         <!-- 纯文本 -->
         <div v-if="item.type === 'text'" class="msg-content">
-          {{item.msgCn || item.msg}}
+          <i
+            class="icon-expand"
+            v-if="item.msgCn && item.msg"
+            :class="!item.expand ? 'el-icon-circle-plus-outline' : 'el-icon-remove-outline'"
+            :style="{right: item.direction === 0 ? '0' : '', left: item.direction === 1 ? '0' : ''}"
+            @click="expandMsg(item, index)"></i>
+          <div>{{item.msgCn || item.msg}}</div>
+          <div v-show="item.expand">{{item.msg}}</div>
         </div>
         <!-- 含链接 -->
         <div v-else-if="item.type === 'link'" class="msg-content" v-html="item.linkMsg"></div>
@@ -35,7 +42,7 @@ import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import dayjs from 'dayjs'
 import BScroll, { BScrollInstance } from 'better-scroll'
 import { ContactUser, Msg } from '@/types'
-import { getMsgList } from '@/utils/api'
+// import { getMsgList } from '@/utils/api'
 import { urlRegExp, decodeUnicode } from '@/utils'
 import ws from '@/utils/ws'
 
@@ -135,10 +142,11 @@ export default class ContactUserMain extends Vue {
   // }
 
   ws_send_getMsgList (): void {
+    if (this.noMore) return
     this.socket?.send(JSON.stringify({ action: ws.msgList.send, userId: this.user.userId, dscUserId: this.user.dscUserId, pageNo: this.pageNo, pageSize: 20 }))
   }
 
-  ws_receive_getMsgList (data: any): void {
+  ws_receive_getMsgList (data: { totalNum: number, list: Msg[] }): void {
     if (!data) return
     if (!this.inited) {
       this.inited = true
@@ -190,6 +198,7 @@ export default class ContactUserMain extends Vue {
     this.list = this.list.concat(list)
     // 缓存消息
     this.saveChatList(this.list)
+
     this.$nextTick(() => {
       bs.refresh()
       this.scrollToElement('#chat-bottom')
@@ -236,6 +245,7 @@ export default class ContactUserMain extends Vue {
 
   handleMsg (list: Msg[]): Msg[] {
     list.forEach(item => {
+      item.expand = false
       if (item.msgCn) {
         item.msgCn = decodeUnicode(item.msgCn)
       }
@@ -290,12 +300,23 @@ export default class ContactUserMain extends Vue {
   saveChatList (list: Msg[]): void {
     this.$store.commit('SET_USER_CHAT_MAP', { id: this.user.id, list })
   }
+
+  expandMsg (msg: Msg, index: number): void {
+    msg.expand = !msg.expand
+    this.$nextTick(() => {
+      bs.refresh()
+      if (index === this.list.length - 1) {
+        this.scrollToElement('#chat-bottom')
+      }
+    })
+  }
 }
 </script>
 
 <style scoped>
 .chat-wrapper {
   height: 100%;
+  padding-bottom: 10px;
   overflow: hidden;
 }
 .chat-content {
@@ -314,8 +335,9 @@ export default class ContactUserMain extends Vue {
   justify-content: flex-end;
 }
 .msg-content {
+  position: relative;
   min-width: 50px;
-  max-width: 544px;
+  max-width: 500px;
   padding: 6px 10px;
   line-height: 24px;
   vertical-align: top;
@@ -323,6 +345,15 @@ export default class ContactUserMain extends Vue {
   border-radius: 8px;
   font-size: 14px;
   background-color: #f2f5fa;
+}
+.icon-expand {
+  position: absolute;
+  top: -8px;
+  cursor: pointer;
+}
+.icon-expand:hover {
+  color: #409EFF;
+  border-color: #c6e2ff;
 }
 .msg-receive .user-avatar {
   margin-right: 10px;

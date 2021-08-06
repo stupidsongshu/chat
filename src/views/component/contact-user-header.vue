@@ -55,6 +55,7 @@ export default class ContactUserHeader extends Vue {
   // }
 
   ws_send_getAccount (): void {
+    // if (this.user.isBan === 1) return
     this.socket?.send(JSON.stringify({ action: ws.account.send, userId: this.user.userId, dscUserId: this.user.dscUserId }))
   }
 

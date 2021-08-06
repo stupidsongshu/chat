@@ -32,6 +32,45 @@ export interface Msg {
   itemId?: number
   salesmanId?: number
   status: number
+  expand?: boolean // msgCn msg 同时存在时，默认显示 msgCn，可展开显示 msg
+}
+
+// 账号
+export interface Account {
+  account: string
+  action: number
+  actionTime: string
+  biography: string
+  bringUpTime: number
+  bringUpTimeFinish: number
+  bringUpTimeJg: number
+  bringUpTimeNeed: number
+  bringUpTimeSleep: number
+  buok: number
+  createBy: number
+  createTime: string
+  edgeFollow: number
+  edgeFollowedBy: number
+  firstName: string
+  groupId: number
+  headImg: string
+  id: number
+  ipId: number
+  isBu: number
+  isBuing: number
+  isCrawl: number
+  isOpen: number
+  openTime:string
+  password: string
+  postTime: string
+  queryTime: string
+  runTaskTime: number
+  runTime: string
+  sendTime: string
+  status: number
+  uId: number
+  userId: string
+  webUrl: string
 }
 
 // text-文本 link-链接 media-图片

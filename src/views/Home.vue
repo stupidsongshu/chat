@@ -21,7 +21,6 @@
 
 <script lang="ts">
 import { Vue, Component, Ref } from 'vue-property-decorator'
-import { cloneDeep } from 'lodash'
 
 import ContactList from './component/contact-list.vue'
 import ContactUserHeader from './component/contact-user-header.vue'
@@ -57,9 +56,6 @@ export default class Home extends Vue {
 
   get contactUser (): ContactUser {
     return this.$store.state.contactUser
-  }
-  get contactList (): ContactUser[] {
-    return this.$store.state.contactList
   }
 
   mounted (): void {
@@ -106,7 +102,6 @@ export default class Home extends Vue {
           switch (res.action) {
             // 联系人列表
             case ws.contactList.receive:
-              // this.socketContactList(res.obj.list)
                 this.contactListRef.ws_receive_contactList(res.obj)
               break
             // 聊天记录
@@ -145,23 +140,6 @@ export default class Home extends Vue {
   sendMsg (msg: Msg): void {
     if (!this.isSupportWs()) return
     this.socket?.send(JSON.stringify(msg))
-  }
-
-  socketContactList (newList: ContactUser[]): void {
-    // 去重
-    const tmpList: ContactUser[] = []
-    const oldList = cloneDeep(this.contactList)
-    oldList.forEach((item: ContactUser) => {
-      const isInclude = newList.find(newItem => newItem.id === item.id)
-      if (!isInclude) {
-        tmpList.push(item)
-      }
-    })
-    // console.warn('newList:', newList)
-    // console.warn('oldList:', oldList)
-    // console.warn('tmpList:', tmpList)
-    const list = newList.concat(tmpList)
-    this.$store.commit('SET_CONTACT_LIST', list)
   }
 
   socketNewMsg (msg: Msg): void {
@@ -203,6 +181,8 @@ export default class Home extends Vue {
 .chat-main {
   /* height: 100vh; */
   height: calc(100vh - 260px);
+  padding-top: 0;
+  padding-bottom: 0;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
 }

@@ -32,6 +32,7 @@
 <script lang="ts">
 import { Vue, Component, Prop } from 'vue-property-decorator'
 import dayjs from 'dayjs'
+import { cloneDeep } from 'lodash'
 import { decodeUnicode } from '@/utils'
 import { getContactList, getMsgList } from '@/utils/api'
 import { ContactUser } from '@/types'
@@ -113,12 +114,28 @@ export default class ContactList extends Vue{
     this.socket?.send(JSON.stringify({ action: ws.contactList.send, pageNo: this.pageNo, pageSize: 20 }))
   }
 
-  ws_receive_contactList (data: any): void {
+  ws_receive_contactList (data: { totalNum: number, list: ContactUser[] }): void {
     if (!data) return
     this.pageNo++
     this.totalNum = data.totalNum || 0
-    const list = data.list || []
-    this.$store.commit('SET_CONTACT_LIST', this.list.concat(list))
+    const newList = data.list || []
+    // this.$store.commit('SET_CONTACT_LIST', this.list.concat(list))
+
+    // 去重
+    const tmpList: ContactUser[] = []
+    const oldList = cloneDeep(this.list)
+    oldList.forEach((item: ContactUser) => {
+      const isInclude = newList.find(newItem => newItem.id === item.id)
+      if (!isInclude) {
+        tmpList.push(item)
+      }
+    })
+    // console.warn('newList:', newList)
+    // console.warn('oldList:', oldList)
+    // console.warn('tmpList:', tmpList)
+    const list = newList.concat(tmpList)
+    this.$store.commit('SET_CONTACT_LIST', list)
+
     if (!inited) {
       inited = true
       if (list.length) {
@@ -145,10 +162,10 @@ export default class ContactList extends Vue{
   border-bottom: 1px solid #ddd;
 }
 .contact-item:hover {
-  background-color: #dfdfdf;
+  background-color: #ddd;
 }
 .contact-item.selected {
-  background-color: #dfdfdf;
+  background-color: #ddd;
 }
 
 .contact-item-right {
