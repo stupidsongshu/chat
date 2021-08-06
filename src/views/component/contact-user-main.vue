@@ -37,6 +37,7 @@ import BScroll, { BScrollInstance } from 'better-scroll'
 import { ContactUser, Msg } from '@/types'
 import { getMsgList } from '@/utils/api'
 import { urlRegExp, decodeUnicode } from '@/utils'
+import ws from '@/utils/ws'
 
 let bs: BScrollInstance
 
@@ -49,6 +50,7 @@ export default class ContactUserMain extends Vue {
   list: Msg[] = []
   avatarDefaultUrl = require('@/assets/img/avatar.jpg')
 
+  @Prop() readonly socket?: WebSocket
   @Prop() user!: ContactUser
 
   get noMore (): boolean {
@@ -75,7 +77,8 @@ export default class ContactUserMain extends Vue {
     }
 
     // 2. 再从接口获取最新数据
-    this.doGetMsgList()
+    // this.doGetMsgList()
+    this.ws_send_getMsgList()
   }
 
   mounted (): void {
@@ -119,7 +122,8 @@ export default class ContactUserMain extends Vue {
         // console.log('滚动到顶部')
         if (this.pageNo > 1) {
           // console.log('滚动到顶部 加载下一页', this.pageNo)
-          this.doGetMsgList()
+          // this.doGetMsgList()
+          this.ws_send_getMsgList()
         }
       }
     })
@@ -130,39 +134,11 @@ export default class ContactUserMain extends Vue {
   //   bs.destroy()
   // }
 
-  handleImgLoad (): void {
-    bs.refresh()
-    if (this.pageNo === 2) {
-      this.scrollToElement('#chat-bottom')
-    }
+  ws_send_getMsgList (): void {
+    this.socket?.send(JSON.stringify({ action: ws.msgList.send, userId: this.user.userId, dscUserId: this.user.dscUserId, pageNo: this.pageNo, pageSize: 20 }))
   }
 
-  scrollToElement (el: string | HTMLElement): void {
-    bs.scrollToElement(el, 300, true, true)
-  }
-
-  updateNewMsg (msg: Msg): void {
-    // 去重：防止多次插入同一条消息
-    if (this.list.find(item => item.id === msg.id)) return
-    // 处理消息
-    const list = this.handleMsg([msg])
-    // 拼接消息
-    this.list = this.list.concat(list)
-    // 缓存消息
-    this.saveChatList(this.list)
-    this.$nextTick(() => {
-      bs.refresh()
-      this.scrollToElement('#chat-bottom')
-    })
-  }
-
-  async doGetMsgList (): Promise<void> {
-    if (this.noMore) return
-    this.loading = true
-    const [err, res] = await getMsgList(this.user.userId, this.pageNo)
-    this.loading = false
-    if (err) return
-    const { data } = res
+  ws_receive_getMsgList (data: any): void {
     if (!data) return
     if (!this.inited) {
       this.inited = true
@@ -193,6 +169,70 @@ export default class ContactUserMain extends Vue {
       }
     })
   }
+
+  handleImgLoad (): void {
+    bs.refresh()
+    if (this.pageNo === 2) {
+      this.scrollToElement('#chat-bottom')
+    }
+  }
+
+  scrollToElement (el: string | HTMLElement): void {
+    bs.scrollToElement(el, 300, true, true)
+  }
+
+  updateNewMsg (msg: Msg): void {
+    // 去重：防止多次插入同一条消息
+    if (this.list.find(item => item.id === msg.id)) return
+    // 处理消息
+    const list = this.handleMsg([msg])
+    // 拼接消息
+    this.list = this.list.concat(list)
+    // 缓存消息
+    this.saveChatList(this.list)
+    this.$nextTick(() => {
+      bs.refresh()
+      this.scrollToElement('#chat-bottom')
+    })
+  }
+
+  // async doGetMsgList (): Promise<void> {
+  //   if (this.noMore) return
+  //   this.loading = true
+  //   const [err, res] = await getMsgList(this.user.userId, this.pageNo)
+  //   this.loading = false
+  //   if (err) return
+  //   const { data } = res
+  //   if (!data) return
+  //   if (!this.inited) {
+  //     this.inited = true
+  //   }
+  //   this.pageNo++
+  //   this.totalNum = data.totalNum || 0
+  //   let list: Msg[] = data.list || []
+  //   if (!list.length) return
+  //   list.reverse()
+  //   // 去重
+  //   list = this.uniqueMsgList(list, this.list)
+  //   // 处理消息
+  //   list = this.handleMsg(list)
+  //   // 拼接消息
+  //   const oldList = this.list
+  //   this.list = list.concat(this.list)
+  //   // 缓存消息
+  //   this.saveChatList(this.list)
+  //
+  //   this.$nextTick(() => {
+  //     bs.refresh()
+  //     // this.pageNo 始终 >= 2
+  //     if (this.pageNo === 2) { // 第一次加载后滚动到底部
+  //       this.scrollToElement('#chat-bottom')
+  //     } else { // 第二次及以后加载后滚动到指定位置
+  //       const id = oldList[0].id
+  //       this.scrollToElement('#chat-' + id)
+  //     }
+  //   })
+  // }
 
   handleMsg (list: Msg[]): Msg[] {
     list.forEach(item => {

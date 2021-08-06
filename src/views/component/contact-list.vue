@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ul class="contact-list" v-infinite-scroll="doGetContactList" infinite-scroll-immediate-check="false" :infinite-scroll-disabled="disabled">
+    <ul class="contact-list" v-infinite-scroll="ws_send_contactList" infinite-scroll-immediate-check="false" :infinite-scroll-disabled="disabled">
       <li class="contact-item" :class="{selected: user.id === item.id}" v-for="item in list" :key="item.id" @click="updateUser(item)">
         <el-avatar shape="square" :size="60" :src="item.img || avatarDefaultUrl"></el-avatar>
         <div class="contact-item-right">
@@ -35,6 +35,7 @@ import dayjs from 'dayjs'
 import { decodeUnicode } from '@/utils'
 import { getContactList, getMsgList } from '@/utils/api'
 import { ContactUser } from '@/types'
+import ws from '@/utils/ws'
 
 let inited = false
 
@@ -45,6 +46,7 @@ export default class ContactList extends Vue{
   totalNum = 0
   avatarDefaultUrl = require('@/assets/img/avatar.jpg')
 
+  @Prop() readonly socket?: WebSocket
   @Prop() readonly user!: ContactUser
 
   get list(): ContactUser[] {
@@ -83,13 +85,35 @@ export default class ContactList extends Vue{
     this.$store.commit('SET_CONTACT_USER', contactUser)
   }
 
-  async doGetContactList1 (): Promise<void> {
+  // async doGetContactList (): Promise<void> {
+  //   if (inited && this.noMore) return
+  //   this.loading = true
+  //   const [err, res] = await getContactList(this.pageNo)
+  //   this.loading = false
+  //   if (err) return
+  //   const { data } = res
+  //   if (!data) return
+  //   this.pageNo++
+  //   this.totalNum = data.totalNum || 0
+  //   const list = data.list || []
+  //   this.$store.commit('SET_CONTACT_LIST', this.list.concat(list))
+  //   if (!inited) {
+  //     inited = true
+  //     if (list.length) {
+  //       // 每次初始化后拉取与第一个最新联系人的聊天记录
+  //       this.$store.commit('SET_CONTACT_USER', list[0])
+  //     }
+  //     // 开始连接 WebSocket
+  //     this.$emit('openSocket')
+  //   }
+  // }
+
+  ws_send_contactList (): void {
     if (inited && this.noMore) return
-    this.loading = true
-    const [err, res] = await getContactList(this.pageNo)
-    this.loading = false
-    if (err) return
-    const { data } = res
+    this.socket?.send(JSON.stringify({ action: ws.contactList.send, pageNo: this.pageNo, pageSize: 20 }))
+  }
+
+  ws_receive_contactList (data: any): void {
     if (!data) return
     this.pageNo++
     this.totalNum = data.totalNum || 0
@@ -101,15 +125,7 @@ export default class ContactList extends Vue{
         // 每次初始化后拉取与第一个最新联系人的聊天记录
         this.$store.commit('SET_CONTACT_USER', list[0])
       }
-      // 开始连接 WebSocket
-      this.$emit('openSocket')
     }
-  }
-
-  doGetContactList (): void {
-    console.log('doGetContactList 0')
-    if (inited && this.noMore) return
-    console.log('doGetContactList 1')
   }
 }
 </script>

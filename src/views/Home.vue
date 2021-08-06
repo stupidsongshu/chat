@@ -2,14 +2,14 @@
   <div class="page page-home">
     <el-container class="page-container">
       <el-aside class="page-aside" width="330px">
-        <ContactList ref="contactListRef" :user="contactUser" @openSocket="openSocket"></ContactList>
+        <ContactList ref="contactListRef" :socket="socket" :user="contactUser" @openSocket="openSocket"></ContactList>
       </el-aside>
       <el-main class="page-main">
         <el-header class="page-header">
-          <ContactUserHeader :user="contactUser"></ContactUserHeader>
+          <ContactUserHeader ref="contactUserHeaderRef" :socket="socket" :user="contactUser"></ContactUserHeader>
         </el-header>
         <el-main class="chat-main">
-          <ContactUserMain ref="contactUserMainRef" :user="contactUser"></ContactUserMain>
+          <ContactUserMain ref="contactUserMainRef" :socket="socket" :user="contactUser"></ContactUserMain>
         </el-main>
         <el-footer class="page-footer" style="height: 200px;">
           <ChatEdit :user="contactUser" @sendMsg="sendMsg"></ChatEdit>
@@ -29,10 +29,9 @@ import ContactUserMain from './component/contact-user-main.vue'
 import ChatEdit from './component/chat-edit.vue'
 
 import { getWsURL } from '@/utils'
-
+import ws from '@/utils/ws'
 import { ContactUser, Msg } from '@/types'
 
-let socket: WebSocket
 let heartTimer = 0
 
 @Component({
@@ -45,8 +44,15 @@ let heartTimer = 0
 })
 export default class Home extends Vue {
   // chatSaving = false // TODO 待优化 发送的消息是否正在保存
+  // socket?: WebSocket
+  data (): any {
+    return {
+      socket: null
+    }
+  }
 
   @Ref() readonly contactListRef!: ContactList
+  @Ref() readonly contactUserHeaderRef!: ContactUserHeader
   @Ref() readonly contactUserMainRef!: ContactUserMain
 
   get contactUser (): ContactUser {
@@ -75,7 +81,9 @@ export default class Home extends Vue {
   openSocket (): void {
     if (!this.isSupportWs()) return
     const socketUrl = getWsURL()
-    socket = new WebSocket(socketUrl)
+    const socket = new WebSocket(socketUrl)
+    this.socket = socket
+    // console.log(this.socket)
     socket.onopen = () => {
       console.log('websocket onopen')
       // 每10秒发送心跳
@@ -90,21 +98,24 @@ export default class Home extends Vue {
       // console.log('websocket onmessage:', msg)
       let res = msg.data
       if (res === '连接成功') {
-        socket.send(JSON.stringify({ action: 'getContactList', pageNo: 1, pageSize: 20 }))
+        this.contactListRef.ws_send_contactList()
       } else {
         try {
           res = JSON.parse(res)
           // console.log('onmessage msg.data:', res)
           switch (res.action) {
             // 联系人列表
-            case 'contactList':
-              this.socketContactList(res.obj.list)
+            case ws.contactList.receive:
+              // this.socketContactList(res.obj.list)
+                this.contactListRef.ws_receive_contactList(res.obj)
               break
             // 聊天记录
-            case 'msgList':
+            case ws.msgList.receive:
+              this.contactUserMainRef.ws_receive_getMsgList(res.obj)
               break
             // 账户信息
-            case 'action':
+            case ws.account.receive:
+              this.contactUserHeaderRef.ws_receive_getAccount(res.obj)
               break
             // 发送消息
             case 'msg':
@@ -116,7 +127,7 @@ export default class Home extends Vue {
               break
           }
         } catch (error) {
-          console.error(error)
+          // console.error(error)
         }
       }
     }
@@ -133,7 +144,7 @@ export default class Home extends Vue {
 
   sendMsg (msg: Msg): void {
     if (!this.isSupportWs()) return
-    socket.send(JSON.stringify(msg))
+    this.socket?.send(JSON.stringify(msg))
   }
 
   socketContactList (newList: ContactUser[]): void {

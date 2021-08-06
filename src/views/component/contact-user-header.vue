@@ -28,6 +28,7 @@
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
 import { ContactUser } from '@/types'
 import { getAccount, saveRemark } from '@/utils/api'
+import ws from '@/utils/ws'
 
 @Component
 export default class ContactUserHeader extends Vue {
@@ -35,18 +36,29 @@ export default class ContactUserHeader extends Vue {
   remark = ''
   firstName = ''
 
+  @Prop() readonly socket?: WebSocket
   @Prop() user!: ContactUser
 
   @Watch('user.id')
   onUserIdChange (): void {
-    this.doGetAccount()
+    // this.doGetAccount()
+    this.ws_send_getAccount()
   }
 
-  async doGetAccount(): Promise<void> {
-    const [err, res] = await getAccount(this.user.userId, this.user.dscUserId)
-    if (err) return
-    if (!res) return
-    const { data } = res
+  // async doGetAccount(): Promise<void> {
+  //   const [err, res] = await getAccount(this.user.userId, this.user.dscUserId)
+  //   if (err) return
+  //   if (!res) return
+  //   const { data } = res
+  //   if (!data) return
+  //   this.firstName = data.firstName
+  // }
+
+  ws_send_getAccount (): void {
+    this.socket?.send(JSON.stringify({ action: ws.account.send, userId: this.user.userId, dscUserId: this.user.dscUserId }))
+  }
+
+  ws_receive_getAccount (data: any): void {
     if (!data) return
     this.firstName = data.firstName
   }
