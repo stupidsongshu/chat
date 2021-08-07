@@ -138,12 +138,13 @@ export const getMsgCommonlyList = async (): Promise<any[]> => {
 /**
  * @description 保存常用回复
  * @param {string} msg 回复内容
- * @param {number} is_delete 0-不删除 1-删除
+ * @param {number} id id
+ * @param {number} isDelete 0-不删除 1-删除
  */
-export const saveMsgCommonly = async (msg: string, is_delete = 0): Promise<any[]> => {
+export const saveMsgCommonly = async (msg: string, id?: number, isDelete = 0): Promise<any[]> => {
   const [err, res] = await http({
     url: '/ttqk/channel/saveMsgCommonly',
-    params: { msg, is_delete }
+    params: { id, msg, isDelete }
   })
   return [err, res]
 }

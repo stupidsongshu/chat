@@ -73,5 +73,18 @@ export interface Account {
   webUrl: string
 }
 
+// 常用回复
+export interface MsgCommonly {
+  id: number
+  isDelete: number // 0-未删除 1-已删除
+  msg: string
+  salesmanId: number
+  tag?: string
+}
+
 // text-文本 link-链接 media-图片
 export type MsgType = 'text' | 'link' | 'media'
+// emoji-表情 msgCommonly-常用回复
+export type ToolTypeEnum = 'emoji' | 'msgCommonly'
+// insert-新增 delete-删除
+export type ToolActionEnum = 'insert' | 'delete'

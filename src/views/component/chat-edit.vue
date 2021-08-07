@@ -16,17 +16,18 @@
             </li>
           </ul> -->
           <div class="emoji-list">
-            <span class="emoji-item" v-for="(item, index) in expressionList" :key="index" @click="insertMsg(item)">
-              {{item}}
-            </span>
+            <div class="emoji-item" v-for="(item, index) in expressionList" :key="index" @click="insertMsg(item)">
+              <span>{{item}}</span>
+              <el-popconfirm title="确定删除？" icon-color="red" confirm-button-type="warning" @confirm="toolSave('emoji', 'delete', index)">
+                <span slot="reference" class="icon-btn-delete el-icon-circle-close" @click="$event => $event.stopPropagation()"></span>
+              </el-popconfirm>
+            </div>
           </div>
           <div class="custom-item">
-            <el-input v-model="expression" clearable placeholder="请输入表情" style="width:150px;margin-right:10px;"></el-input>
-            <el-link type="primary" :underline="false" @click="doSaveExpression"><i class="el-icon-plus"></i>添加</el-link>
+            <el-input v-model="expression" clearable placeholder="请输入表情" style="width: 150px;"></el-input>
+            <el-link style="margin-left: 10px;" type="primary" :underline="false" @click="toolSave('emoji', 'insert')"><i class="el-icon-plus"></i>添加</el-link>
           </div>
           <el-link slot="reference" style="font-size: 20px; font-weight: bold" :underline="false" @click="doGetExpression">
-            <!-- <i class="el-icon-user"></i> -->
-            <!-- <span style="font-size:20px;">😊</span> -->
             <i class="iconfont icon-Smile"></i>
           </el-link>
         </el-popover>
@@ -37,14 +38,21 @@
           width="300"
           placement="top"
           trigger="click">
-          <el-link class="msg-commonly" :underline="false" v-for="item in msgCommonlyList" :key="item.id" @click="insertMsg(item.msg)">{{item.msg}}</el-link>
+          <div class="msg-commonly-item" :underline="false" v-for="(item, index) in msgCommonlyList" :key="item.id" @click="insertMsg(item.msg)">
+            <el-link :underline="false">{{item.msg}}</el-link>
+            <el-popconfirm title="确定删除？" icon-color="red" confirm-button-type="warning" @confirm="toolSave('msgCommonly', 'delete', index)">
+              <span slot="reference" class="icon-btn-delete el-icon-circle-close" @click="$event => $event.stopPropagation()"></span>
+            </el-popconfirm>
+          </div>
           <div class="custom-item">
             <el-input v-model="msgCommonly" clearable placeholder="请输入常用回复" style="width:150px;margin-right:10px;"></el-input>
-            <el-link type="primary" :underline="false" @click="doSaveMsgCommonly"><i class="el-icon-plus"></i>添加</el-link>
+            <el-link type="primary" :underline="false" @click="toolSave('msgCommonly', 'insert')">
+              <i class="el-icon-plus"></i>添加
+            </el-link>
           </div>
           <el-link slot="reference" style="font-size: 20px;" :underline="false" @click="doGetMsgCommonlyList">
-          <i class="el-icon-chat-line-square"></i>
-        </el-link>
+            <i class="el-icon-chat-line-square"></i>
+          </el-link>
         </el-popover>
       </li>
     </ul>
@@ -73,19 +81,19 @@
 
 <script lang="ts">
 import { Vue, Component, Prop, Ref } from 'vue-property-decorator'
-import { ContactUser, Msg, MsgType } from '@/types'
+import { ContactUser, Msg, MsgType, MsgCommonly, ToolTypeEnum, ToolActionEnum } from '@/types'
 import { uploadImg, getExpression, saveExpression, getMsgCommonlyList, saveMsgCommonly } from '@/utils/api'
-import { urlRegExp } from '@/utils'
+import { urlRegExp, decodeUnicode } from '@/utils'
 
 @Component
 export default class ChatEdit extends Vue {
   loading = false
   msg = '' // 发送内容
   expression = '' // 自定义表情
-  expressionList = [] // 表情列表
+  expressionList: string[] = [] // 表情列表
   // expressionList = ['😔', '😁', '😉', '😱', '😖', '😚', '😝', '😌', '😨', '😷', '😳', '😒', '😰', '😲', '😭', '😜', '😘', '😡', '💪', '👊', '👍', '☝', '👏', '✌', '👎', '🙏', '👌', '👈', '👉', '👆', '👇', '👀', '👃', '👄', '👂', '🍚', '🍝', '🍜', '🍙', '🍧', '🍣', '🎂', '🍞', '🍔', '🍳', '🍟', '🍺', '🍻', '🍸', '☕', '🍎', '🍊', '🍓', '🍉', '💊', '🚬', '🎄', '🌹', '🎉', '🌴', '💝', '🎀', '🎈', '🐚', '💍', '💣', '👑', '🔔', '⭐', '✨', '💨', '💦', '🔥', '🏆', '💰', '💤', '⚡', '👣', '💩', '💉', '♨', '📫', '🔑', '🔒', '✈', '🚄', '🚗', '🚤', '🚲', '🐎', '🚀', '🚌', '⛵', '👩', '👨', '👧', '👦', '🐵', '🐙', '🐷', '🐤', '🐨', '🐮', '🐔', '🐸', '👻', '💀', '🐛', '🐠', '🐶', '🐯', '👼', '🐧', '🐳', '🐭', '👒', '👗', '💄', '👠', '👢', '🌂', '👜', '👙', '👕', '👟', '☁', '☀', '☔', '🌙', '⛄', '⭕', '❌', '❔', '❕', '☎', '📷', '📱', '📠', '💻', '🎥', '🎤', '🔫', '💿', '💓', '♣', '🀄', '〽', '🎰', '🚥', '🚧', '🎸', '💈', '🛀', '🚽', '🏠', '⛪', '🏦', '🏥', '🏨', '🏧', '🏪', '🚹', '🚺']
-  msgCommonlyList = [] // 常用回复
-  msgCommonly = ''
+  msgCommonlyList: MsgCommonly[] = [] // 常用回复列表
+  msgCommonly = '' // 自定义常用回复
 
   @Prop() readonly user!: ContactUser
 
@@ -96,6 +104,10 @@ export default class ChatEdit extends Vue {
   }
   get disableSendMsg (): boolean {
     return this.user.isBan === 1 || !this.user.dscUserName
+  }
+
+  decodeStr (str: string): string {
+    return decodeUnicode(str)
   }
 
   // https://stackoverflow.com/questions/34982381/how-to-insert-at-caret-position-of-contenteditable-using-typescript
@@ -133,7 +145,7 @@ export default class ChatEdit extends Vue {
     ]
     if (whiteList.indexOf(file.type) === -1) {
       this.$message({
-        message: '请上传图片',
+        message: '请上传图片文件',
         type: 'warning'
       })
     }
@@ -234,7 +246,8 @@ export default class ChatEdit extends Vue {
   }
 
   // 表情
-  async doGetExpression (): Promise<void> {
+  async doGetExpression (action: string | undefined): Promise<void> {
+    if (this.expressionList.length && action !== 'update') return
     const [err, res] = await getExpression()
     if (err) return
     const { data } = res
@@ -246,72 +259,125 @@ export default class ChatEdit extends Vue {
     })
   }
 
-  async doSaveExpression (): Promise<void> {
+  async doSaveExpression (action: ToolActionEnum, index: number): Promise<void> {
     const expression = this.expression.trim()
-    if (!expression) {
-      this.$message({
-        message: '请输入表情',
-        type: 'warning'
-      })
-      return
+    let list: string[] = []
+    if (action === 'insert') {
+      if (!expression) {
+        this.$message({
+          message: '请输入表情',
+          type: 'warning'
+        })
+        return
+      }
+      list = [...this.expressionList, expression]
+    } else if (action === 'delete') {
+      this.expressionList.splice(index, 1)
+      list = this.expressionList
     }
-    const [err, res] = await saveExpression(JSON.stringify([...this.expressionList, expression]))
+    const [err, res] = await saveExpression(JSON.stringify(list))
     if (err) return
     if (!res) return
     this.expression = ''
-    this.doGetExpression()
+    this.doGetExpression('update')
   }
 
   // 常用回复
-  async doGetMsgCommonlyList (): Promise<void> {
+  async doGetMsgCommonlyList (action: string | undefined): Promise<void> {
+    if (this.msgCommonlyList.length && action !== 'update') return
     const [err, res] = await getMsgCommonlyList()
     if (err) return
-    const { data } = res
+    const data: MsgCommonly[] = res.data
     if (!data) return
-    this.msgCommonlyList = data
+    this.msgCommonlyList = (data || []).filter(item => item.isDelete === 0).map(item => {
+      item.msg = this.decodeStr(item.msg)
+      return item
+    })
     this.$nextTick(() => {
       (this.$refs['msg-commonly-popover'] as any).updatePopper()
     })
   }
 
-  async doSaveMsgCommonly (): Promise<void> {
-    const msgCommonly = this.msgCommonly.trim()
-    if (!msgCommonly) {
-      this.$message({
-        message: '请输入常用回复',
-        type: 'warning'
-      })
-      return
+  async doSaveMsgCommonly (action: ToolActionEnum, index: number): Promise<void> {
+    let msgCommonly = ''
+    let id = undefined
+    let isDelete = 0
+
+    if (action === 'insert') {
+      msgCommonly = this.msgCommonly.trim()
+      if (!msgCommonly) {
+        this.$message({
+          message: '请输入回复内容',
+          type: 'warning'
+        })
+        return
+      }
+    } else if (action === 'delete') {
+      const item = this.msgCommonlyList[index]
+      if (!item) {
+        this.$message({
+          message: '该回复不存在',
+          type: 'warning'
+        })
+        return
+      }
+      msgCommonly = item.msg
+      id = item.id
+      isDelete = 1
     }
-    const [err, res] = await saveMsgCommonly(msgCommonly)
+
+    const [err, res] = await saveMsgCommonly(msgCommonly, id, isDelete)
     if (err) return
     if (!res) return
     this.msgCommonly = ''
-    this.doGetMsgCommonlyList()
+    this.doGetMsgCommonlyList('update')
+  }
+
+  // 新增/删除
+  toolSave (type: ToolTypeEnum, action: ToolActionEnum, index = -1): void {
+    switch (type) {
+      case 'emoji':
+        this.doSaveExpression(action, index)
+        break
+      case 'msgCommonly':
+        this.doSaveMsgCommonly(action, index)
+        break
+    }
   }
 }
 </script>
 
 <style scoped>
-/* .emoji-list {
-
-} */
 .emoji-item {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
+  margin: 2px;
+  border-radius: 5px;
+  background-color: #f2f5fa;
   cursor: pointer;
 }
 .emoji-item:hover {
-  background-color: #f2f2f2;
+  background-color: #d8d8d8;
 }
-.emoji {
-  /* display: inline-block;
-  width: 25px;
-  height: 25px; */
-  font-size: 25px;
+/*.emoji {*/
+/*  display: inline-block;*/
+/*  width: 25px;*/
+/*  height: 25px;*/
+/*  font-size: 25px;*/
+/*}*/
+
+.icon-btn-delete {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+}
+.icon-btn-delete:hover {
+  color: #409EFF;
+  border-color: #c6e2ff;
 }
 
 .chat-edit {
@@ -334,12 +400,16 @@ export default class ChatEdit extends Vue {
 .custom-item {
   margin-top: 5px;
 }
-.msg-commonly {
+.msg-commonly-item {
+  position: relative;
   display: block;
-  padding: 5px 0;
+  margin: 8px 0;
+  padding: 5px 10px;
+  background-color: #f2f5fa;
+  cursor: pointer;
 }
-.msg-commonly:hover {
-  background-color: #f2f2f2;
+.msg-commonly-item:hover {
+  background-color: #d8d8d8;
 }
 
 .chat-input {

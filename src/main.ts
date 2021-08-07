@@ -12,8 +12,9 @@ import {
   Input,
   Form,
   FormItem,
-  Message,
+  Image,
   Loading,
+  Message,
   Container,
   Header,
   Aside,
@@ -25,7 +26,7 @@ import {
   Col,
   Tag,
   Popover,
-  Image
+  Popconfirm
 } from 'element-ui'
 
 // Vue.use(VueScrollTo)
@@ -34,6 +35,7 @@ Vue.use(Button)
 Vue.use(Input)
 Vue.use(Form)
 Vue.use(FormItem)
+Vue.use(Image)
 Vue.use(Container)
 Vue.use(Header)
 Vue.use(Aside)
@@ -45,10 +47,12 @@ Vue.use(Row)
 Vue.use(Col)
 Vue.use(Tag)
 Vue.use(Popover)
-Vue.use(Image)
+Vue.use(Popconfirm)
 
-Vue.prototype.$message = Message
+Vue.use(Loading.directive)
+
 Vue.prototype.$loading = Loading.service
+Vue.prototype.$message = Message
 
 Vue.config.productionTip = false
 
