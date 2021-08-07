@@ -105,6 +105,7 @@ export default class Home extends Vue {
               break
             // 账户信息
             case ws.account.receive:
+              res.obj.tag = res.tag
               this.contactUserHeaderRef.ws_receive_getAccount(res.obj)
               break
             // 发送消息

@@ -110,7 +110,11 @@ export default class ContactUserMain extends Vue {
         discreteTime: 400,
         throttleTime: 0,
         dampingFactor: 0.1
-      }
+      },
+      preventDefault: false,
+      // preventDefaultException: {
+      //   className: /(^|\s)msg-content(\s|$)/
+      // }
     })
     // bs.on('scrollStart', () => {
     //   console.log('scrollStart-')

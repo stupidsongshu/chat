@@ -1,25 +1,30 @@
 <template>
   <el-row class="contact-user-header" type="flex" justify="between">
     <el-col :span="10">
-      <div>{{this.user.dscUserName}}</div>
-      <div>{{this.user.remark}}</div>
+      <div>{{ user.dscUserName }}</div>
+      <div class="user-remark">{{ user.remark }}</div>
     </el-col>
     <el-col :span="10">
-      {{firstName}}
+      <div style="display: flex; align-items: center;">
+        <el-avatar class="account-avatar" shape="square" :size="50" :src="account.headImg || avatarDefaultUrl"></el-avatar>
+        <div>
+          <p>{{ account.firstName }}</p>
+          <el-tag size="mini" v-if="account.tag">{{account.tag}}</el-tag>
+        </div>
+      </div>
     </el-col>
-    <el-col :span="4" class="remark">
+    <el-col :span="4" class="remark-edit">
       <el-popover
-        trigger="hover"
-        placement="bottom"
-        width="300"
-        v-model="isEdit">
+          trigger="hover"
+          placement="bottom"
+          width="300"
+          v-model="isEdit">
         <el-input ref="remarkRef" v-model="remark" autofocus clearable placeholder="请输入备注" style="margin-right:10px;"></el-input>
         <div style="margin-top: 10px; text-align: right;">
           <el-button size="mini" type="text" @click="isEdit = false">取消</el-button>
           <el-button size="mini" type="primary" @click="doSaveRemark">确定</el-button>
         </div>
         <el-link slot="reference" type="primary" :underline="false" @click="isEdit = true"><i class="el-icon-edit"></i>修改</el-link>
-        <pre>{{accountList}}</pre>
       </el-popover>
     </el-col>
   </el-row>
@@ -35,7 +40,8 @@ import ws from '@/utils/ws'
 export default class ContactUserHeader extends Vue {
   isEdit = false
   remark = ''
-  firstName = ''
+  account = {} as Account
+  avatarDefaultUrl = require('@/assets/img/avatar.jpg')
 
   @Prop() readonly socket?: WebSocket
   @Prop() readonly user!: ContactUser
@@ -58,10 +64,10 @@ export default class ContactUserHeader extends Vue {
   }
 
   clearAccount (): void {
-    this.firstName = ''
+    this.account = {} as Account
   }
   updateAccount (account: Account): void {
-    this.firstName = account.firstName
+    this.account = account
   }
 
   // async doGetAccount(): Promise<void> {
@@ -114,8 +120,17 @@ export default class ContactUserHeader extends Vue {
   height: 100%;
   align-items: center;
 }
-.remark {
+.user-remark {
+  font-size: 14px;
+  color: #666;
+}
+
+.account-avatar {
+  margin-right: 10px;
+}
+
+.remark-edit {
   display: flex;
-  justify-content: flex-end
+  justify-content: flex-end;
 }
 </style>
