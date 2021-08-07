@@ -34,7 +34,7 @@ import { Vue, Component, Prop } from 'vue-property-decorator'
 import dayjs from 'dayjs'
 import { cloneDeep } from 'lodash'
 import { decodeUnicode } from '@/utils'
-import { getContactList, getMsgList } from '@/utils/api'
+import { /* getContactList, */ getMsgList } from '@/utils/api'
 import { ContactUser } from '@/types'
 import ws from '@/utils/ws'
 
@@ -119,7 +119,6 @@ export default class ContactList extends Vue{
     this.pageNo++
     this.totalNum = data.totalNum || 0
     const newList = data.list || []
-    // this.$store.commit('SET_CONTACT_LIST', this.list.concat(list))
 
     // 去重
     const tmpList: ContactUser[] = []
@@ -130,9 +129,6 @@ export default class ContactList extends Vue{
         tmpList.push(item)
       }
     })
-    // console.warn('newList:', newList)
-    // console.warn('oldList:', oldList)
-    // console.warn('tmpList:', tmpList)
     const list = newList.concat(tmpList)
     this.$store.commit('SET_CONTACT_LIST', list)
 

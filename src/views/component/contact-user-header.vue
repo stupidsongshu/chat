@@ -19,6 +19,7 @@
           <el-button size="mini" type="primary" @click="doSaveRemark">确定</el-button>
         </div>
         <el-link slot="reference" type="primary" :underline="false" @click="isEdit = true"><i class="el-icon-edit"></i>修改</el-link>
+        <pre>{{accountList}}</pre>
       </el-popover>
     </el-col>
   </el-row>
@@ -26,8 +27,8 @@
 
 <script lang="ts">
 import { Vue, Component, Prop, Watch } from 'vue-property-decorator'
-import { ContactUser } from '@/types'
-import { getAccount, saveRemark } from '@/utils/api'
+import { ContactUser, Account } from '@/types'
+import { /* getAccount, */ saveRemark } from '@/utils/api'
 import ws from '@/utils/ws'
 
 @Component
@@ -37,12 +38,30 @@ export default class ContactUserHeader extends Vue {
   firstName = ''
 
   @Prop() readonly socket?: WebSocket
-  @Prop() user!: ContactUser
+  @Prop() readonly user!: ContactUser
+
+  get accountList (): Account[] {
+    return this.$store.state.accountList
+  }
 
   @Watch('user.id')
   onUserIdChange (): void {
-    // this.doGetAccount()
-    this.ws_send_getAccount()
+    // 优先从缓存中取
+    const account = this.accountList.find(item => item.userId === this.user.userId)
+    if (!account) {
+      // this.doGetAccount()
+      this.clearAccount()
+      this.ws_send_getAccount()
+    } else {
+      this.updateAccount(account)
+    }
+  }
+
+  clearAccount (): void {
+    this.firstName = ''
+  }
+  updateAccount (account: Account): void {
+    this.firstName = account.firstName
   }
 
   // async doGetAccount(): Promise<void> {
@@ -59,9 +78,10 @@ export default class ContactUserHeader extends Vue {
     this.socket?.send(JSON.stringify({ action: ws.account.send, userId: this.user.userId, dscUserId: this.user.dscUserId }))
   }
 
-  ws_receive_getAccount (data: any): void {
+  ws_receive_getAccount (data: Account): void {
     if (!data) return
-    this.firstName = data.firstName
+    this.updateAccount(data)
+    this.$store.commit('SET_ACCOUNT_LIST', data)
   }
 
   async doSaveRemark(): Promise<void> {

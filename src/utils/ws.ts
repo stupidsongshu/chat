@@ -12,6 +12,6 @@ export default {
     // 账户信息
     account: {
         send: 'account',
-        receive: 'action'
+        receive: 'account'
     }
 }

@@ -69,7 +69,7 @@ export interface Account {
   sendTime: string
   status: number
   uId: number
-  userId: string
+  userId: number
   webUrl: string
 }
 

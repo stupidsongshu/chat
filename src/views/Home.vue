@@ -43,12 +43,7 @@ let heartTimer = 0
 })
 export default class Home extends Vue {
   // chatSaving = false // TODO 待优化 发送的消息是否正在保存
-  // socket?: WebSocket
-  data (): any {
-    return {
-      socket: null
-    }
-  }
+  socket: WebSocket | null = null
 
   @Ref() readonly contactListRef!: ContactList
   @Ref() readonly contactUserHeaderRef!: ContactUserHeader

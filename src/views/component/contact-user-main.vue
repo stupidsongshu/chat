@@ -58,7 +58,7 @@ export default class ContactUserMain extends Vue {
   avatarDefaultUrl = require('@/assets/img/avatar.jpg')
 
   @Prop() readonly socket?: WebSocket
-  @Prop() user!: ContactUser
+  @Prop() readonly user!: ContactUser
 
   get noMore (): boolean {
     return this.inited && (this.list.length >= this.totalNum)
@@ -110,11 +110,7 @@ export default class ContactUserMain extends Vue {
         discreteTime: 400,
         throttleTime: 0,
         dampingFactor: 0.1
-      },
-      // mouseWheel: true,
-      // bindToWrapper: true,
-      // disableTouch: true,
-      // disableMouse: true,
+      }
     })
     // bs.on('scrollStart', () => {
     //   console.log('scrollStart-')
@@ -356,6 +352,7 @@ export default class ContactUserMain extends Vue {
   border-color: #c6e2ff;
 }
 .msg-receive .user-avatar {
+  flex-shrink: 0;
   margin-right: 10px;
 }
 .msg-receive .msg-content {
