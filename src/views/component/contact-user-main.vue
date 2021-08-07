@@ -13,7 +13,6 @@
           :id="'chat-' + item.id">
         <!-- direction: 0-我方发送 1-粉丝发送 -->
         <el-avatar class="user-avatar" shape="square" v-if="item.direction === 1" :size="36" :src="user.img || avatarDefaultUrl"></el-avatar>
-        <!-- <div class="msg-content">{{formatTime(item.sendTime)}} {{item.msgCn}}</div> -->
         <!-- 纯文本 -->
         <div v-if="item.type === 'text'" class="msg-content">
           <i
@@ -22,6 +21,7 @@
             :class="!item.expand ? 'el-icon-circle-plus-outline' : 'el-icon-remove-outline'"
             :style="{right: item.direction === 0 ? '0' : '', left: item.direction === 1 ? '0' : ''}"
             @click="expandMsg(item, index)"></i>
+<!--          <div class="msg-send-time" :style="{right: item.direction === 0 ? 0 : ''}">{{formatTime(item.sendTime)}}</div>-->
           <div>{{item.msgCn || item.msg}}</div>
           <div v-show="item.expand">{{item.msg}}</div>
         </div>
@@ -30,6 +30,11 @@
         <!-- 图片 -->
         <div v-else-if="item.type === 'media'">
           <el-image class="msg-img" :src="item.url" :preview-src-list="[item.url]" @load="handleImgLoad"></el-image>
+        </div>
+
+        <!-- 消息发送成功 -->
+        <div class="msg-status">
+          <el-link v-if="item.sendSuccess" :underline="false" type="primary" icon="el-icon-check"></el-link>
         </div>
       </li>
       <li id="chat-bottom"></li>
@@ -191,7 +196,15 @@ export default class ContactUserMain extends Vue {
 
   updateNewMsg (msg: Msg): void {
     // 去重：防止多次插入同一条消息
-    if (this.list.find(item => item.id === msg.id)) return
+    const msgItem = this.list.find(item => item.id === msg.id)
+    if (msgItem) {
+      if (msgItem.direction === 0 && msgItem.status === 2) {
+        // 新消息发送成功
+        msgItem.sendSuccess = true
+      } else {
+        return
+      }
+    }
     // 处理消息
     const list = this.handleMsg([msg])
     // 拼接消息
@@ -246,6 +259,8 @@ export default class ContactUserMain extends Vue {
   handleMsg (list: Msg[]): Msg[] {
     list.forEach(item => {
       item.expand = false
+      item.sendSuccess = false
+
       if (item.msgCn) {
         item.msgCn = decodeUnicode(item.msgCn)
       }
@@ -281,7 +296,7 @@ export default class ContactUserMain extends Vue {
   }
 
   formatTime (time: number): string {
-    return dayjs(time).format('YYYY-MM-DD HH:mm')
+    return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
   }
 
   uniqueMsgList (newList: Msg[], oldList: Msg[]): Msg[] {
@@ -346,6 +361,14 @@ export default class ContactUserMain extends Vue {
   font-size: 14px;
   background-color: #f2f5fa;
 }
+.msg-send-time {
+  position: absolute;
+  top: -16px;
+  left: 16px;
+  font-size: 12px;
+  color: #999999;
+  white-space: nowrap;
+}
 .icon-expand {
   position: absolute;
   top: -8px;
@@ -369,5 +392,10 @@ export default class ContactUserMain extends Vue {
   max-width: 200px;
   border-radius: 10px;
   border: 1px solid #eee;
+}
+
+.msg-status {
+  width: 20px;
+  margin-left: 5px;
 }
 </style>

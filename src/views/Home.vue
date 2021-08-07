@@ -97,7 +97,7 @@ export default class Home extends Vue {
           switch (res.action) {
             // 联系人列表
             case ws.contactList.receive:
-                this.contactListRef.ws_receive_contactList(res.obj)
+              this.contactListRef.ws_receive_contactList(res.obj)
               break
             // 聊天记录
             case ws.msgList.receive:
@@ -179,6 +179,7 @@ export default class Home extends Vue {
   height: calc(100vh - 260px);
   padding-top: 0;
   padding-bottom: 0;
+  padding-right: 0;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
 }

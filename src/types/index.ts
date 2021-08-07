@@ -31,7 +31,8 @@ export interface Msg {
   sendTime?: number
   itemId?: number
   salesmanId?: number
-  status: number
+  status: number // 0-数据库保存成功 1-正在发送 2-发送成功
+  sendSuccess: boolean // 新消息是否发送成功
   expand?: boolean // msgCn msg 同时存在时，默认显示 msgCn，可展开显示 msg
 }
 
