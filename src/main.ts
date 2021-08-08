@@ -15,6 +15,7 @@ import {
   Image,
   Loading,
   Message,
+  MessageBox,
   Container,
   Header,
   Aside,
@@ -53,6 +54,7 @@ Vue.use(Loading.directive)
 
 Vue.prototype.$loading = Loading.service
 Vue.prototype.$message = Message
+Vue.prototype.$alert = MessageBox.alert
 
 Vue.config.productionTip = false
 

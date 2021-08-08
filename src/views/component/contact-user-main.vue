@@ -183,32 +183,29 @@ export default class ContactUserMain extends Vue {
     })
   }
 
-  handleImgLoad (): void {
-    bs.refresh()
-    if (this.pageNo === 2) {
-      this.scrollToElement('#chat-bottom')
-    }
-  }
-
-  scrollToElement (el: string | HTMLElement): void {
-    bs.scrollToElement(el, 300, true, true)
-  }
-
   updateNewMsg (msg: Msg): void {
     // 去重：防止多次插入同一条消息
-    const msgItem = this.list.find(item => item.id === msg.id)
-    if (msgItem) {
-      if (msgItem.direction === 0 && msgItem.status === 2) {
+    let index = this.list.findIndex(item => item.id === msg.id)
+    if (index !== -1) {
+      if (msg.direction === 0 && msg.status === 2) {
         // 新消息发送成功
-        msgItem.sendSuccess = true
+        msg.sendSuccess = true
       } else {
         return
       }
     }
+
     // 处理消息
     const list = this.handleMsg([msg])
-    // 拼接消息
-    this.list = this.list.concat(list)
+
+    if (index !== -1) {
+      // 更新消息
+      this.list.splice(index, 1, list[0])
+    } else {
+      // 拼接消息
+      this.list = this.list.concat(list)
+    }
+
     // 缓存消息
     this.saveChatList(this.list)
 
@@ -256,10 +253,23 @@ export default class ContactUserMain extends Vue {
   //   })
   // }
 
+  uniqueMsgList (newList: Msg[], oldList: Msg[]): Msg[] {
+    if (!oldList.length) {
+      return newList
+    }
+    const list: Msg[] = []
+    newList.forEach(item => {
+      if (!oldList.find(oldItem => oldItem.id === item.id)) {
+        list.push(item)
+      }
+    })
+    return list
+  }
+
   handleMsg (list: Msg[]): Msg[] {
     list.forEach(item => {
-      item.expand = false
-      item.sendSuccess = false
+      item.expand = item.expand || false
+      item.sendSuccess = item.sendSuccess || false
 
       if (item.msgCn) {
         item.msgCn = decodeUnicode(item.msgCn)
@@ -299,19 +309,6 @@ export default class ContactUserMain extends Vue {
     return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
   }
 
-  uniqueMsgList (newList: Msg[], oldList: Msg[]): Msg[] {
-    if (!oldList.length) {
-      return newList
-    }
-    const list: Msg[] = []
-    newList.forEach(item => {
-      if (!oldList.find(oldItem => oldItem.id === item.id)) {
-        list.push(item)
-      }
-    })
-    return list
-  }
-
   saveChatList (list: Msg[]): void {
     this.$store.commit('SET_USER_CHAT_MAP', { id: this.user.id, list })
   }
@@ -324,6 +321,17 @@ export default class ContactUserMain extends Vue {
         this.scrollToElement('#chat-bottom')
       }
     })
+  }
+
+  handleImgLoad (): void {
+    bs.refresh()
+    if (this.pageNo === 2) {
+      this.scrollToElement('#chat-bottom')
+    }
+  }
+
+  scrollToElement (el: string | HTMLElement): void {
+    bs.scrollToElement(el, 300, true, true)
   }
 }
 </script>

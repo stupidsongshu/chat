@@ -32,6 +32,7 @@ import ws from '@/utils/ws'
 import { ContactUser, Msg } from '@/types'
 
 let heartTimer = 0
+let reConnectCount = 0 // 断开重连次数
 
 @Component({
   components: {
@@ -108,13 +109,17 @@ export default class Home extends Vue {
               res.obj.tag = res.tag
               this.contactUserHeaderRef.ws_receive_getAccount(res.obj)
               break
-            // 发送消息
+            // 发送消息 消息保存数据库成功后状态 status 为 0
             case 'msg':
               this.socketNewMsg(res.obj)
               break
             // 收到新消息
             case 'newMsg':
               this.socketNewMsg(res.obj)
+              break
+            default:
+              // 消息发送成功后状态 status 变更为 2
+              this.socketNewMsg(res)
               break
           }
         } catch (error) {
@@ -125,8 +130,25 @@ export default class Home extends Vue {
     socket.onclose = (err) => {
       console.warn('websocket onclose:', err)
       // 断开重连
-      console.log('断开重连...')
+      console.log('断开重连...', ++reConnectCount)
       this.openSocket()
+      // if (reConnectCount < 10) {
+      //   reConnectCount++
+      //   // this.$message({
+      //   //   type: 'warning',
+      //   //   message: `正在尝试第${reConnectCount}次连接服务`
+      //   // })
+      //
+      //   this.openSocket()
+      // } else {
+      //   this.$alert('服务连接失败，请刷新页面或稍后重试', '提示', {
+      //     type: 'error',
+      //     confirmButtonText: '确定',
+      //     callback: () => {
+      //       window.location.reload()
+      //     }
+      //   })
+      // }
     }
     socket.onerror = (err) => {
       console.error('websocket onerror:', err)
