@@ -126,6 +126,7 @@ export default class ContactUserHeader extends Vue {
 }
 
 .account-avatar {
+  flex-shrink: 0;
   margin-right: 10px;
 }
 
